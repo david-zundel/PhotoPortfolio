@@ -1,4 +1,6 @@
+import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
+import Lightbox, { LightboxImage } from "./Lightbox";
 
 const portraits = [
   { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop", title: "Golden Hour", subtitle: "Natural light editorial" },
@@ -8,6 +10,14 @@ const portraits = [
 ];
 
 const PortraitsSection = () => {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const lightboxImages: LightboxImage[] = portraits.map((p) => ({
+    src: p.src,
+    alt: p.title,
+  }));
+
   return (
     <section id="portraits" className="relative py-32 px-6">
       <div className="text-center mb-24">
@@ -23,7 +33,10 @@ const PortraitsSection = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {portraits.map((p, i) => (
           <ScrollReveal key={p.title} delay={i * 0.15} className="group">
-            <div className="relative overflow-hidden rounded-2xl">
+            <div
+              className="relative overflow-hidden rounded-2xl cursor-pointer"
+              onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+            >
               <img
                 src={p.src}
                 alt={p.title}
@@ -43,6 +56,13 @@ const PortraitsSection = () => {
           </ScrollReveal>
         ))}
       </div>
+
+      <Lightbox
+        images={lightboxImages}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
     </section>
   );
 };

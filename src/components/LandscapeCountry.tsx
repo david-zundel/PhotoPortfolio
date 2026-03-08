@@ -1,4 +1,5 @@
 import ScrollReveal from "./ScrollReveal";
+import { LightboxImage } from "./Lightbox";
 
 interface LandscapeCountryProps {
   country: string;
@@ -7,16 +8,20 @@ interface LandscapeCountryProps {
   index: number;
   color: string;
   textGradient: string;
+  onImageClick: (images: LightboxImage[], index: number) => void;
 }
 
-const LandscapeCountry = ({ country, description, image, index, color, textGradient }: LandscapeCountryProps) => {
+const LandscapeCountry = ({ country, description, image, index, color, textGradient, onImageClick }: LandscapeCountryProps) => {
   const isEven = index % 2 === 0;
 
   return (
     <div className="min-h-screen flex items-center py-20 px-6 md:px-12 lg:px-24">
       <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-12 lg:gap-20 items-center w-full max-w-7xl mx-auto`}>
         <ScrollReveal className="flex-1" direction={isEven ? "left" : "right"} delay={0.1}>
-          <div className="relative group">
+          <div
+            className="relative group cursor-pointer"
+            onClick={() => onImageClick([{ src: image, alt: `Landscape of ${country}`, location: country }], 0)}
+          >
             <div
               className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
               style={{ background: color }}
@@ -31,7 +36,6 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
         </ScrollReveal>
 
         <ScrollReveal className="flex-1 max-w-lg" direction={isEven ? "right" : "left"} delay={0.3}>
-          
           <h3
             className="text-4xl md:text-5xl font-bold font-display mt-4 mb-6 bg-clip-text text-transparent inline-block"
             style={{
