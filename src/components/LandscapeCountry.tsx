@@ -6,10 +6,10 @@ interface LandscapeCountryProps {
   image: string;
   index: number;
   color: string;
-  textColor: string;
+  textGradient: string;
 }
 
-const LandscapeCountry = ({ country, description, image, index, color, textColor }: LandscapeCountryProps) => {
+const LandscapeCountry = ({ country, description, image, index, color, textGradient }: LandscapeCountryProps) => {
   const isEven = index % 2 === 0;
 
   return (
@@ -32,7 +32,16 @@ const LandscapeCountry = ({ country, description, image, index, color, textColor
 
         <ScrollReveal className="flex-1 max-w-lg" direction={isEven ? "right" : "left"} delay={0.3}>
           <span className="country-label mb-6 inline-block">{country}</span>
-          <h3 className="text-4xl md:text-5xl font-bold font-display mt-4 mb-6" style={{ color: textColor }}>
+          <h3
+            className="text-4xl md:text-5xl font-bold font-display mt-4 mb-6"
+            style={{
+              background: textGradient,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+              paddingBottom: '0.15em',
+            }}
+          >
             {country}
           </h3>
           <p className="text-lg text-muted-foreground font-body font-light leading-relaxed">
