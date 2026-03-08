@@ -42,7 +42,7 @@ const countries = [
     description: "Golden sand dunes rippling endlessly under a blazing sunset, camel caravans casting elongated shadows across the Sahara's timeless expanse.",
     image: "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&h=800&fit=crop",
     color: "hsl(45 80% 80% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(35 45% 40%), hsl(45 42% 42%))",
+    textGradient: "linear-gradient(135deg, hsl(25 42% 38%), hsl(50 40% 48%))",
   },
 ];
 
