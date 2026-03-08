@@ -1,5 +1,7 @@
+import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
 import LandscapeCountry from "./LandscapeCountry";
+import Lightbox, { LightboxImage } from "./Lightbox";
 
 const countries = [
   {
@@ -47,6 +49,16 @@ const countries = [
 ];
 
 const LandscapesSection = () => {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  const handleImageClick = (images: LightboxImage[], index: number) => {
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setLightboxOpen(true);
+  };
+
   return (
     <section id="landscapes" className="relative">
       <div className="py-32 px-6 text-center relative z-10">
@@ -60,8 +72,15 @@ const LandscapesSection = () => {
       </div>
 
       {countries.map((c, i) => (
-        <LandscapeCountry key={c.country} {...c} index={i} />
+        <LandscapeCountry key={c.country} {...c} index={i} onImageClick={handleImageClick} />
       ))}
+
+      <Lightbox
+        images={lightboxImages}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
     </section>
   );
 };

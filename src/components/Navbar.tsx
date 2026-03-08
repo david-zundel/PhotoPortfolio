@@ -1,10 +1,29 @@
 import { motion } from "framer-motion";
+import { useNavigate, useLocation } from "react-router-dom";
 
-const sections = ["Home", "Landscapes", "Portraits", "Contact"];
+const sections = ["Home", "Landscapes", "Portraits", "Gallery", "Contact"];
 
 const Navbar = () => {
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id.toLowerCase());
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleClick = (section: string) => {
+    if (section === "Gallery") {
+      navigate("/gallery");
+      return;
+    }
+
+    if (location.pathname !== "/") {
+      navigate("/");
+      // Wait for navigation then scroll
+      setTimeout(() => {
+        const el = document.getElementById(section.toLowerCase());
+        el?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+      return;
+    }
+
+    const el = document.getElementById(section.toLowerCase());
     el?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -17,7 +36,11 @@ const Navbar = () => {
     >
       <div className="flex gap-1 rounded-full bg-background/70 backdrop-blur-xl px-2 py-1.5 shadow-lg border border-border">
         {sections.map((s) => (
-          <button key={s} onClick={() => scrollTo(s)} className="nav-pill">
+          <button
+            key={s}
+            onClick={() => handleClick(s)}
+            className={`nav-pill ${s === "Gallery" && location.pathname === "/gallery" ? "active" : ""}`}
+          >
             {s}
           </button>
         ))}
