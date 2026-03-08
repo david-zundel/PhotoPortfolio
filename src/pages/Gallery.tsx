@@ -76,7 +76,7 @@ const Gallery = () => {
         </div>
 
         <div className="px-6 pb-24">
-          <div className="max-w-7xl mx-auto columns-1 sm:columns-2 lg:columns-3 gap-4">
+          <div className="max-w-7xl mx-auto columns-1 sm:columns-2 gap-6">
             {filtered.map((photo, i) => (
               <motion.div
                 key={photo.src}
