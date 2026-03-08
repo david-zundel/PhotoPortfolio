@@ -13,6 +13,7 @@ interface LandscapeCountryProps {
 }
 
 const LandscapeCountry = ({ country, description, image, index, color, textGradient, onImageClick }: LandscapeCountryProps) => {
+  const [loaded, setLoaded] = useState(false);
   const isEven = index % 2 === 0;
 
   return (
