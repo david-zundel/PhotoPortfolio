@@ -21,7 +21,7 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
       <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-6 md:gap-12 lg:gap-20 items-center w-full max-w-7xl mx-auto`}>
         <ScrollReveal className="flex-1" direction={isEven ? "left" : "right"} delay={0.1}>
           <div
-            className="relative group cursor-pointer"
+            className="relative group cursor-pointer rounded-2xl overflow-hidden bg-muted"
             onClick={() => onImageClick([{ src: image, alt: `Landscape of ${country}`, location: country }], 0)}
           >
             <div
@@ -31,9 +31,12 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
             <img
               src={image}
               alt={`Landscape of ${country}`}
-              className={`relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-all duration-700 group-hover:scale-[1.02] ${
+              className={`relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-opacity duration-500 ease-out group-hover:scale-[1.02] group-hover:transition-transform group-hover:duration-700 ${
                 loaded ? "opacity-100" : "opacity-0"
               }`}
+              style={{ willChange: "opacity" }}
+              fetchPriority="high"
+              decoding="async"
               onLoad={() => setLoaded(true)}
             />
           </div>
