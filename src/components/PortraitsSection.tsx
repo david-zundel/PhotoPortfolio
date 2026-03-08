@@ -1,17 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScrollReveal from "./ScrollReveal";
 import Lightbox, { LightboxImage } from "./Lightbox";
+import { supabase } from "@/integrations/supabase/client";
 
-const portraits = [
+type PortraitData = {
+  src: string;
+  title: string;
+  subtitle: string;
+};
+
+const fallbackPortraits: PortraitData[] = [
   { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop", title: "Golden Hour", subtitle: "Natural light editorial" },
   { src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&h=800&fit=crop", title: "Shadow Play", subtitle: "Studio dramatic" },
-  { src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&h=800&fit=crop", title: "Timeless", subtitle: "Documentary portrait" },
-  { src: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=1200&h=800&fit=crop", title: "Pure Joy", subtitle: "Candid moments" },
 ];
 
 const PortraitsSection = () => {
+  const [portraits, setPortraits] = useState<PortraitData[]>(fallbackPortraits);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase
+        .from("photos")
+        .select("*")
+        .eq("homepage", true)
+        .eq("category", "portrait")
+        .order("sort_order")
+        .order("created_at", { ascending: false });
+
+      if (data && data.length > 0) {
+        setPortraits(
+          data.map((p: any) => ({
+            src: p.src,
+            title: p.alt || "Untitled",
+            subtitle: p.subtitle || "",
+          }))
+        );
+      }
+    };
+    fetch();
+  }, []);
 
   const lightboxImages: LightboxImage[] = portraits.map((p) => ({
     src: p.src,
@@ -32,7 +61,7 @@ const PortraitsSection = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {portraits.map((p, i) => (
-          <ScrollReveal key={p.title} delay={i * 0.15} className="group">
+          <ScrollReveal key={p.title + i} delay={i * 0.15} className="group">
             <div
               className="relative overflow-hidden rounded-2xl cursor-pointer"
               onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}

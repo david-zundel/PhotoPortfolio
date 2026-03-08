@@ -18,29 +18,44 @@ export type Database = {
         Row: {
           alt: string | null
           category: string
+          color: string | null
           created_at: string | null
+          description: string | null
+          homepage: boolean
           id: string
           location: string | null
           sort_order: number | null
           src: string
+          subtitle: string | null
+          text_gradient: string | null
         }
         Insert: {
           alt?: string | null
           category?: string
+          color?: string | null
           created_at?: string | null
+          description?: string | null
+          homepage?: boolean
           id?: string
           location?: string | null
           sort_order?: number | null
           src: string
+          subtitle?: string | null
+          text_gradient?: string | null
         }
         Update: {
           alt?: string | null
           category?: string
+          color?: string | null
           created_at?: string | null
+          description?: string | null
+          homepage?: boolean
           id?: string
           location?: string | null
           sort_order?: number | null
           src?: string
+          subtitle?: string | null
+          text_gradient?: string | null
         }
         Relationships: []
       }
