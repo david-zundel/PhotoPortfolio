@@ -12,24 +12,14 @@ type CountryData = {
   textGradient: string;
 };
 
-const fallbackCountries: CountryData[] = [
-  {
-    country: "Switzerland",
-    description: "Alpine peaks kissed by golden light, where pristine lakes mirror the heavens.",
-    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=1200&h=800&fit=crop",
-    color: "hsl(200 60% 78% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(190 40% 40%), hsl(220 35% 50%))",
-  },
-];
-
 const LandscapesSection = () => {
-  const [countries, setCountries] = useState<CountryData[]>(fallbackCountries);
+  const [countries, setCountries] = useState<CountryData[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       const { data } = await supabase
         .from("photos")
         .select("*")
@@ -38,7 +28,7 @@ const LandscapesSection = () => {
         .order("sort_order")
         .order("created_at", { ascending: false });
 
-      if (data && data.length > 0) {
+      if (data) {
         setCountries(
           data.map((p: any) => ({
             country: p.location || p.alt || "Untitled",
@@ -50,7 +40,7 @@ const LandscapesSection = () => {
         );
       }
     };
-    fetch();
+    fetchData();
   }, []);
 
   const handleImageClick = (images: LightboxImage[], index: number) => {
@@ -58,6 +48,8 @@ const LandscapesSection = () => {
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
+
+  if (countries.length === 0) return null;
 
   return (
     <section id="landscapes" className="relative">
