@@ -215,25 +215,26 @@ const Admin = () => {
             type="file"
             accept="image/*"
             multiple
+            onChange={handleFilesSelected}
             className="hidden"
             disabled={uploading}
           />
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="nav-pill active"
-          >
-            <Plus size={16} className="mr-2" />
-            {uploading ? "Uploading..." : "Choose Files"}
-          </Button>
-          <Button
-            onClick={handleUpload}
-            disabled={uploading || !fileInputRef.current?.files?.length}
-            className="ml-2"
-          >
-            Upload
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              <Plus size={16} className="mr-2" />
+              {selectedFiles.length > 0 ? `${selectedFiles.length} file(s) selected` : "Choose Files"}
+            </Button>
+            <Button
+              onClick={handleUpload}
+              disabled={uploading || selectedFiles.length === 0}
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
         </div>
 
         {/* Photo grid */}
