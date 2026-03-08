@@ -99,14 +99,6 @@ const PortraitsSection = () => {
                 onSave={(x, y) => handleCropSave(i, x, y)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-              <div className="absolute bottom-0 left-0 right-0 p-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
-                <p className="text-sm tracking-[0.2em] uppercase text-primary-foreground/70 font-body mb-1">
-                  {p.subtitle}
-                </p>
-                <h3 className="text-3xl font-bold font-display text-primary-foreground">
-                  {p.title}
-                </h3>
-              </div>
             </div>
           </ScrollReveal>
         ))}
