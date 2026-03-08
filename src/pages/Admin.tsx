@@ -242,7 +242,14 @@ const Admin = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {photos.map((photo) => (
             <div key={photo.id} className="group relative rounded-xl overflow-hidden border border-border">
-              <img src={getPreviewUrl(photo.src, 400, 60)} alt={photo.alt || ""} className="w-full aspect-square object-cover" />
+              <img 
+                src={getPreviewUrl(photo.src, 400, 60)} 
+                alt={photo.alt || ""} 
+                className="w-full aspect-square object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = photo.src;
+                }}
+              />
               <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
                   variant="secondary"
