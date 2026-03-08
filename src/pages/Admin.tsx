@@ -32,6 +32,7 @@ const Admin = () => {
   const [alt, setAlt] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [subtitle, setSubtitle] = useState("");
   const [homepage, setHomepage] = useState(false);
   const [category, setCategory] = useState<"landscape" | "portrait">("landscape");
