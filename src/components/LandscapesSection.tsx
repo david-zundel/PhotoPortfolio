@@ -1,57 +1,57 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ScrollReveal from "./ScrollReveal";
 import LandscapeCountry from "./LandscapeCountry";
 import Lightbox, { LightboxImage } from "./Lightbox";
+import { supabase } from "@/integrations/supabase/client";
 
-const countries = [
+type CountryData = {
+  country: string;
+  description: string;
+  image: string;
+  color: string;
+  textGradient: string;
+};
+
+const fallbackCountries: CountryData[] = [
   {
     country: "Switzerland",
-    description: "Alpine peaks kissed by golden light, where pristine lakes mirror the heavens. Each frame captures the raw grandeur of nature's cathedral.",
+    description: "Alpine peaks kissed by golden light, where pristine lakes mirror the heavens.",
     image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=1200&h=800&fit=crop",
     color: "hsl(200 60% 78% / 0.15)",
     textGradient: "linear-gradient(135deg, hsl(190 40% 40%), hsl(220 35% 50%))",
   },
-  {
-    country: "Japan",
-    description: "Cherry blossoms paint the world in soft pinks, while ancient temples whisper stories of centuries past. A land where nature and culture dance as one.",
-    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&h=800&fit=crop",
-    color: "hsl(270 40% 78% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(260 30% 42%), hsl(300 28% 52%))",
-  },
-  {
-    country: "Iceland",
-    description: "Where fire meets ice — aurora borealis illuminating volcanic shores. A landscape so otherworldly it feels like stepping onto another planet.",
-    image: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200&h=800&fit=crop",
-    color: "hsl(160 40% 75% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(150 35% 36%), hsl(190 30% 46%))",
-  },
-  {
-    country: "Italy",
-    description: "Sun-drenched coastlines adorned with pastel villages cascading toward turquoise waters. The Amalfi Coast in all its Mediterranean splendor.",
-    image: "https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=1200&h=800&fit=crop",
-    color: "hsl(25 80% 82% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(15 45% 40%), hsl(35 42% 50%))",
-  },
-  {
-    country: "Argentina",
-    description: "The jagged spires of Patagonia rising through dramatic clouds, glacial lakes glowing turquoise against wild grasslands stretching to infinity.",
-    image: "https://images.unsplash.com/photo-1464817739973-0128fe77aed1?w=1200&h=800&fit=crop",
-    color: "hsl(200 60% 78% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(185 38% 38%), hsl(215 35% 48%))",
-  },
-  {
-    country: "Morocco",
-    description: "Golden sand dunes rippling endlessly under a blazing sunset, camel caravans casting elongated shadows across the Sahara's timeless expanse.",
-    image: "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&h=800&fit=crop",
-    color: "hsl(45 80% 80% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(25 42% 38%), hsl(50 40% 48%))",
-  },
 ];
 
 const LandscapesSection = () => {
+  const [countries, setCountries] = useState<CountryData[]>(fallbackCountries);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase
+        .from("photos")
+        .select("*")
+        .eq("homepage", true)
+        .eq("category", "landscape")
+        .order("sort_order")
+        .order("created_at", { ascending: false });
+
+      if (data && data.length > 0) {
+        setCountries(
+          data.map((p: any) => ({
+            country: p.location || p.alt || "Untitled",
+            description: p.description || "",
+            image: p.src,
+            color: p.color || "hsl(200 60% 78% / 0.15)",
+            textGradient: p.text_gradient || "linear-gradient(135deg, hsl(190 40% 40%), hsl(220 35% 50%))",
+          }))
+        );
+      }
+    };
+    fetch();
+  }, []);
 
   const handleImageClick = (images: LightboxImage[], index: number) => {
     setLightboxImages(images);
@@ -72,7 +72,7 @@ const LandscapesSection = () => {
       </div>
 
       {countries.map((c, i) => (
-        <LandscapeCountry key={c.country} {...c} index={i} onImageClick={handleImageClick} />
+        <LandscapeCountry key={c.country + i} {...c} index={i} onImageClick={handleImageClick} />
       ))}
 
       <Lightbox
