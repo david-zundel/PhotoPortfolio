@@ -12,7 +12,7 @@ const ContactSection = () => {
         <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
           Get in Touch
         </p>
-        <h2 className="section-title gradient-text mb-8">
+        <h2 className="section-title section-title-contact mb-8">
           Let's Create
           <br />
           Together

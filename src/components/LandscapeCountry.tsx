@@ -31,7 +31,7 @@ const LandscapeCountry = ({ country, description, image, index, color }: Landsca
 
         <ScrollReveal className="flex-1 max-w-lg" direction={isEven ? "right" : "left"} delay={0.3}>
           <span className="country-label mb-6 inline-block">{country}</span>
-          <h3 className="text-4xl md:text-5xl font-bold font-display mt-4 mb-6 text-foreground">
+          <h3 className="text-4xl md:text-5xl font-bold font-display mt-4 mb-6" style={{ color: color.replace('/ 0.15)', '/ 1)') }}>
             {country}
           </h3>
           <p className="text-lg text-muted-foreground font-body font-light leading-relaxed">
