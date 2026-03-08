@@ -23,7 +23,7 @@ const Login = () => {
       if (error) {
         toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Check your email", description: "A confirmation link has been sent to verify your account." });
+        navigate("/admin");
       }
     } else {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
