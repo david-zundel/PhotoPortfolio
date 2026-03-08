@@ -35,7 +35,7 @@ const countries = [
     description: "The jagged spires of Patagonia rising through dramatic clouds, glacial lakes glowing turquoise against wild grasslands stretching to infinity.",
     image: "https://images.unsplash.com/photo-1464817739973-0128fe77aed1?w=1200&h=800&fit=crop",
     color: "hsl(200 60% 78% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(195 40% 40%), hsl(210 38% 44%))",
+    textGradient: "linear-gradient(135deg, hsl(185 38% 38%), hsl(215 35% 48%))",
   },
   {
     country: "Morocco",
