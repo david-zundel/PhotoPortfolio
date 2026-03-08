@@ -205,18 +205,30 @@ const Admin = () => {
               </span>
             </label>
           </div>
-          <label className="inline-flex items-center gap-2 cursor-pointer nav-pill active">
-            <Plus size={16} />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            disabled={uploading}
+          />
+          <Button
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="nav-pill active"
+          >
+            <Plus size={16} className="mr-2" />
             {uploading ? "Uploading..." : "Choose Files"}
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleUpload}
-              className="hidden"
-              disabled={uploading}
-            />
-          </label>
+          </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={uploading || !fileInputRef.current?.files?.length}
+            className="ml-2"
+          >
+            Upload
+          </Button>
         </div>
 
         {/* Photo grid */}
