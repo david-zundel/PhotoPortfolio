@@ -139,6 +139,24 @@ const Admin = () => {
     fetchPhotos();
   };
 
+  const openEdit = (photo: Photo) => {
+    setEditPhoto(photo);
+    setEditLocation(photo.location || "");
+    setEditDescription(photo.description || "");
+    setEditAlt(photo.alt || "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editPhoto) return;
+    await supabase
+      .from("photos")
+      .update({ location: editLocation || null, description: editDescription || null, alt: editAlt || null })
+      .eq("id", editPhoto.id);
+    setEditPhoto(null);
+    toast({ title: "Photo updated" });
+    fetchPhotos();
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/login");
