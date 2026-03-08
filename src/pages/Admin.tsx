@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, LogOut, Plus, Home, Star } from "lucide-react";
+import { Trash2, LogOut, Plus, Home, Star, Pencil } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import type { Session } from "@supabase/supabase-js";
 
 type Photo = {
@@ -33,6 +35,10 @@ const Admin = () => {
   const [subtitle, setSubtitle] = useState("");
   const [homepage, setHomepage] = useState(false);
   const [category, setCategory] = useState<"landscape" | "portrait">("landscape");
+  const [editPhoto, setEditPhoto] = useState<Photo | null>(null);
+  const [editLocation, setEditLocation] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editAlt, setEditAlt] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -133,6 +139,24 @@ const Admin = () => {
     fetchPhotos();
   };
 
+  const openEdit = (photo: Photo) => {
+    setEditPhoto(photo);
+    setEditLocation(photo.location || "");
+    setEditDescription(photo.description || "");
+    setEditAlt(photo.alt || "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editPhoto) return;
+    await supabase
+      .from("photos")
+      .update({ location: editLocation || null, description: editDescription || null, alt: editAlt || null })
+      .eq("id", editPhoto.id);
+    setEditPhoto(null);
+    toast({ title: "Photo updated" });
+    fetchPhotos();
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/login");
@@ -199,6 +223,14 @@ const Admin = () => {
               <img src={photo.src} alt={photo.alt || ""} className="w-full aspect-square object-cover" />
               <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => openEdit(photo)}
+                  title="Edit details"
+                >
+                  <Pencil size={16} />
+                </Button>
+                <Button
                   variant={photo.homepage ? "default" : "secondary"}
                   size="sm"
                   onClick={() => handleToggleHomepage(photo)}
@@ -231,6 +263,32 @@ const Admin = () => {
             <p>No photos yet. Upload some above!</p>
           </div>
         )}
+
+        <Dialog open={!!editPhoto} onOpenChange={(open) => !open && setEditPhoto(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Photo Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Title / Alt</label>
+                <Input value={editAlt} onChange={(e) => setEditAlt(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Location</label>
+                <Input value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditPhoto(null)}>Cancel</Button>
+              <Button onClick={handleSaveEdit}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
