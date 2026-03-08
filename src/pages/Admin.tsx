@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,11 @@ const Admin = () => {
   const [alt, setAlt] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [subtitle, setSubtitle] = useState("");
   const [homepage, setHomepage] = useState(false);
   const [category, setCategory] = useState<"landscape" | "portrait">("landscape");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editPhoto, setEditPhoto] = useState<Photo | null>(null);
   const [editLocation, setEditLocation] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -69,12 +71,17 @@ const Admin = () => {
     if (data) setPhotos(data as Photo[]);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
+
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) return;
 
     setUploading(true);
-    for (const file of Array.from(files)) {
+    for (const file of selectedFiles) {
       const fileExt = file.name.split(".").pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
@@ -112,9 +119,10 @@ const Admin = () => {
     setDescription("");
     setSubtitle("");
     setHomepage(false);
-    toast({ title: "Photos uploaded!" });
+    setSelectedFiles([]);
+    toast({ title: `${selectedFiles.length} photo(s) uploaded!` });
     fetchPhotos();
-    e.target.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleToggleHomepage = async (photo: Photo) => {
@@ -202,18 +210,31 @@ const Admin = () => {
               </span>
             </label>
           </div>
-          <label className="inline-flex items-center gap-2 cursor-pointer nav-pill active">
-            <Plus size={16} />
-            {uploading ? "Uploading..." : "Choose Files"}
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={handleUpload}
-              className="hidden"
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFilesSelected}
+            className="hidden"
+            disabled={uploading}
+          />
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-            />
-          </label>
+            >
+              <Plus size={16} className="mr-2" />
+              {selectedFiles.length > 0 ? `${selectedFiles.length} file(s) selected` : "Choose Files"}
+            </Button>
+            <Button
+              onClick={handleUpload}
+              disabled={uploading || selectedFiles.length === 0}
+            >
+              {uploading ? "Uploading..." : "Upload"}
+            </Button>
+          </div>
         </div>
 
         {/* Photo grid */}
