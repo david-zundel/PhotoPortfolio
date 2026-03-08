@@ -5,20 +5,13 @@ import { Link } from "react-router-dom";
 import Lightbox, { LightboxImage } from "@/components/Lightbox";
 import { supabase } from "@/integrations/supabase/client";
 
-const fallbackPhotos: LightboxImage[] = [
-  { src: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=800&h=533&fit=crop", alt: "Swiss Alps", location: "Switzerland" },
-  { src: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=800&h=533&fit=crop", alt: "Cherry Blossoms", location: "Japan" },
-  { src: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=800&h=533&fit=crop", alt: "Northern Lights", location: "Iceland" },
-  { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&h=533&fit=crop", alt: "Golden Hour Portrait" },
-];
-
 type FilterType = "all" | "landscapes" | "portraits";
 
 const Gallery = () => {
   const [filter, setFilter] = useState<FilterType>("all");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [photos, setPhotos] = useState<LightboxImage[]>(fallbackPhotos);
+  const [photos, setPhotos] = useState<LightboxImage[]>([]);
 
   useEffect(() => {
     const fetchPhotos = async () => {
