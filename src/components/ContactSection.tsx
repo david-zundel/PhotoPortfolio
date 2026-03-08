@@ -17,10 +17,10 @@ const ContactSection = () => {
           Available for commissions, collaborations, and print inquiries worldwide.
         </p>
         <a
-          href="mailto:hello@davidzundel.com"
+          href="mailto:davidzundel007@gmail.com"
           className="nav-pill active inline-block text-base"
         >
-          hello@davidzundel.com
+          davidzundel007@gmail.com
         </a>
       </ScrollReveal>
 
