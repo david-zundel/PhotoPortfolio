@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, Upload, LogOut, Plus } from "lucide-react";
+import { Trash2, LogOut, Plus, Home, Star } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 
 type Photo = {
@@ -15,6 +15,11 @@ type Photo = {
   category: string;
   sort_order: number;
   created_at: string;
+  homepage: boolean;
+  description: string | null;
+  subtitle: string | null;
+  color: string | null;
+  text_gradient: string | null;
 };
 
 const Admin = () => {
@@ -24,6 +29,9 @@ const Admin = () => {
   const [uploading, setUploading] = useState(false);
   const [alt, setAlt] = useState("");
   const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
+  const [subtitle, setSubtitle] = useState("");
+  const [homepage, setHomepage] = useState(false);
   const [category, setCategory] = useState<"landscape" | "portrait">("landscape");
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -82,6 +90,9 @@ const Admin = () => {
         alt: alt || file.name.split(".")[0],
         location: location || null,
         category,
+        homepage,
+        description: description || null,
+        subtitle: subtitle || null,
       });
 
       if (insertError) {
@@ -92,13 +103,24 @@ const Admin = () => {
     setUploading(false);
     setAlt("");
     setLocation("");
+    setDescription("");
+    setSubtitle("");
+    setHomepage(false);
     toast({ title: "Photos uploaded!" });
     fetchPhotos();
     e.target.value = "";
   };
 
+  const handleToggleHomepage = async (photo: Photo) => {
+    await supabase
+      .from("photos")
+      .update({ homepage: !photo.homepage })
+      .eq("id", photo.id);
+    fetchPhotos();
+    toast({ title: photo.homepage ? "Removed from homepage" : "Added to homepage" });
+  };
+
   const handleDelete = async (photo: Photo) => {
-    // Extract file path from URL
     const url = new URL(photo.src);
     const pathParts = url.pathname.split("/storage/v1/object/public/photos/");
     const filePath = pathParts[1];
@@ -131,9 +153,9 @@ const Admin = () => {
         {/* Upload form */}
         <div className="rounded-2xl border border-border bg-card p-6 mb-12 space-y-4">
           <h2 className="text-lg font-semibold font-display">Upload Photos</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Input placeholder="Alt text" value={alt} onChange={(e) => setAlt(e.target.value)} />
-            <Input placeholder="Location (optional)" value={location} onChange={(e) => setLocation(e.target.value)} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Input placeholder="Title / Alt text" value={alt} onChange={(e) => setAlt(e.target.value)} />
+            <Input placeholder="Location (for landscapes)" value={location} onChange={(e) => setLocation(e.target.value)} />
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as "landscape" | "portrait")}
@@ -142,6 +164,19 @@ const Admin = () => {
               <option value="landscape">Landscape</option>
               <option value="portrait">Portrait</option>
             </select>
+            <Input placeholder="Description (for homepage landscapes)" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <Input placeholder="Subtitle (for homepage portraits)" value={subtitle} onChange={(e) => setSubtitle(e.target.value)} />
+            <label className="flex items-center gap-2 h-10 px-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={homepage}
+                onChange={(e) => setHomepage(e.target.checked)}
+                className="w-4 h-4 rounded border-input"
+              />
+              <span className="text-sm flex items-center gap-1">
+                <Home size={14} /> Show on homepage
+              </span>
+            </label>
           </div>
           <label className="inline-flex items-center gap-2 cursor-pointer nav-pill active">
             <Plus size={16} />
@@ -162,7 +197,15 @@ const Admin = () => {
           {photos.map((photo) => (
             <div key={photo.id} className="group relative rounded-xl overflow-hidden border border-border">
               <img src={photo.src} alt={photo.alt || ""} className="w-full aspect-square object-cover" />
-              <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                <Button
+                  variant={photo.homepage ? "default" : "secondary"}
+                  size="sm"
+                  onClick={() => handleToggleHomepage(photo)}
+                  title={photo.homepage ? "Remove from homepage" : "Add to homepage"}
+                >
+                  <Star size={16} className={photo.homepage ? "fill-current" : ""} />
+                </Button>
                 <Button
                   variant="destructive"
                   size="sm"
@@ -173,7 +216,10 @@ const Admin = () => {
               </div>
               <div className="absolute bottom-0 left-0 right-0 p-2 bg-background/80 backdrop-blur-sm">
                 <p className="text-xs font-medium truncate">{photo.alt}</p>
-                <p className="text-xs text-muted-foreground">{photo.category}{photo.location ? ` · ${photo.location}` : ""}</p>
+                <p className="text-xs text-muted-foreground">
+                  {photo.category}{photo.location ? ` · ${photo.location}` : ""}
+                  {photo.homepage && <span className="ml-1 text-primary">★</span>}
+                </p>
               </div>
             </div>
           ))}
@@ -181,7 +227,7 @@ const Admin = () => {
 
         {photos.length === 0 && (
           <div className="text-center py-24 text-muted-foreground">
-            <Upload size={48} className="mx-auto mb-4 opacity-30" />
+            <Plus size={48} className="mx-auto mb-4 opacity-30" />
             <p>No photos yet. Upload some above!</p>
           </div>
         )}
