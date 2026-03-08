@@ -58,6 +58,20 @@ const Index = () => {
         <HeroSection />
         <LandscapesSection />
         <PortraitsSection />
+
+        {/* See more CTA */}
+        <div className="py-24 px-6 text-center">
+          <ScrollReveal>
+            <Link
+              to="/gallery"
+              className="inline-flex items-center gap-3 nav-pill active text-lg group"
+            >
+              See more of my photos
+              <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+            </Link>
+          </ScrollReveal>
+        </div>
+
         <ContactSection />
       </div>
     </div>
