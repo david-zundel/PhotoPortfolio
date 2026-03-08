@@ -47,10 +47,10 @@ const Gallery = () => {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Background orbs */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-pastel-lavender/30 blur-3xl" />
-        <div className="absolute top-[30vh] right-[-5vw] w-[450px] h-[450px] rounded-full bg-pastel-mint/30 blur-3xl" />
-        <div className="absolute top-[60vh] left-[10vw] w-[400px] h-[400px] rounded-full bg-pastel-peach/25 blur-3xl" />
-        <div className="absolute top-[90vh] right-[15vw] w-[500px] h-[500px] rounded-full bg-pastel-sky/30 blur-3xl" />
+        <div className="absolute top-[10vh] right-[15vw] w-[30vw] h-[30vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full bg-pastel-lavender/30 blur-3xl" />
+        <div className="absolute top-[40vh] right-[-5vw] w-[28vw] h-[28vw] max-w-[450px] max-h-[450px] min-w-[180px] min-h-[180px] rounded-full bg-pastel-mint/30 blur-3xl" />
+        <div className="absolute top-[70vh] left-[10vw] w-[25vw] h-[25vw] max-w-[400px] max-h-[400px] min-w-[180px] min-h-[180px] rounded-full bg-pastel-peach/25 blur-3xl" />
+        <div className="absolute top-[100vh] right-[20vw] w-[30vw] h-[30vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full bg-pastel-sky/30 blur-3xl" />
       </div>
 
       <div className="relative z-10">
