@@ -31,9 +31,12 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
             <img
               src={image}
               alt={`Landscape of ${country}`}
-              className={`relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-all duration-700 group-hover:scale-[1.02] ${
+              className={`relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-opacity duration-500 ease-out group-hover:scale-[1.02] group-hover:transition-transform group-hover:duration-700 ${
                 loaded ? "opacity-100" : "opacity-0"
               }`}
+              style={{ willChange: "opacity" }}
+              fetchPriority="high"
+              decoding="async"
               onLoad={() => setLoaded(true)}
             />
           </div>
