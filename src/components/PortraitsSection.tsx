@@ -9,18 +9,13 @@ type PortraitData = {
   subtitle: string;
 };
 
-const fallbackPortraits: PortraitData[] = [
-  { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop", title: "Golden Hour", subtitle: "Natural light editorial" },
-  { src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&h=800&fit=crop", title: "Shadow Play", subtitle: "Studio dramatic" },
-];
-
 const PortraitsSection = () => {
-  const [portraits, setPortraits] = useState<PortraitData[]>(fallbackPortraits);
+  const [portraits, setPortraits] = useState<PortraitData[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       const { data } = await supabase
         .from("photos")
         .select("*")
@@ -29,7 +24,7 @@ const PortraitsSection = () => {
         .order("sort_order")
         .order("created_at", { ascending: false });
 
-      if (data && data.length > 0) {
+      if (data) {
         setPortraits(
           data.map((p: any) => ({
             src: p.src,
@@ -39,13 +34,15 @@ const PortraitsSection = () => {
         );
       }
     };
-    fetch();
+    fetchData();
   }, []);
 
   const lightboxImages: LightboxImage[] = portraits.map((p) => ({
     src: p.src,
     alt: p.title,
   }));
+
+  if (portraits.length === 0) return null;
 
   return (
     <section id="portraits" className="relative py-32 px-6">

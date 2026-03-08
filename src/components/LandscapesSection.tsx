@@ -14,16 +14,12 @@ type CountryData = {
 
 const LandscapesSection = () => {
   const [countries, setCountries] = useState<CountryData[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-const LandscapesSection = () => {
-  const [countries, setCountries] = useState<CountryData[]>(fallbackCountries);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       const { data } = await supabase
         .from("photos")
         .select("*")
@@ -32,7 +28,7 @@ const LandscapesSection = () => {
         .order("sort_order")
         .order("created_at", { ascending: false });
 
-      if (data && data.length > 0) {
+      if (data) {
         setCountries(
           data.map((p: any) => ({
             country: p.location || p.alt || "Untitled",
@@ -44,7 +40,7 @@ const LandscapesSection = () => {
         );
       }
     };
-    fetch();
+    fetchData();
   }, []);
 
   const handleImageClick = (images: LightboxImage[], index: number) => {
@@ -52,6 +48,8 @@ const LandscapesSection = () => {
     setLightboxIndex(index);
     setLightboxOpen(true);
   };
+
+  if (countries.length === 0) return null;
 
   return (
     <section id="landscapes" className="relative">
