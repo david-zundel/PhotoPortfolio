@@ -223,6 +223,14 @@ const Admin = () => {
               <img src={photo.src} alt={photo.alt || ""} className="w-full aspect-square object-cover" />
               <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => openEdit(photo)}
+                  title="Edit details"
+                >
+                  <Pencil size={16} />
+                </Button>
+                <Button
                   variant={photo.homepage ? "default" : "secondary"}
                   size="sm"
                   onClick={() => handleToggleHomepage(photo)}
@@ -255,6 +263,32 @@ const Admin = () => {
             <p>No photos yet. Upload some above!</p>
           </div>
         )}
+
+        <Dialog open={!!editPhoto} onOpenChange={(open) => !open && setEditPhoto(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Photo Details</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Title / Alt</label>
+                <Input value={editAlt} onChange={(e) => setEditAlt(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Location</label>
+                <Input value={editLocation} onChange={(e) => setEditLocation(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Description</label>
+                <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} rows={3} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditPhoto(null)}>Cancel</Button>
+              <Button onClick={handleSaveEdit}>Save</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
