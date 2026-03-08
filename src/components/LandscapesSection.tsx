@@ -48,7 +48,7 @@ const LandscapesSection = () => {
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection One
           </p>
-          <h2 className="section-title text-foreground mb-6">Landscapes</h2>
+          <h2 className="section-title section-title-landscapes mb-6">Landscapes</h2>
           <div className="pastel-divider w-24 mx-auto" />
         </ScrollReveal>
       </div>
