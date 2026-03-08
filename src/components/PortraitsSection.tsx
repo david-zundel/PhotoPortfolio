@@ -10,13 +10,6 @@ const portraits = [
 const PortraitsSection = () => {
   return (
     <section id="portraits" className="relative py-32 px-6">
-      {/* Pastel gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-20 right-1/4 w-96 h-96 rounded-full bg-pastel-lavender/20 blur-3xl" />
-        <div className="absolute top-1/3 -left-32 w-80 h-80 rounded-full bg-pastel-coral/15 blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/3 w-72 h-72 rounded-full bg-pastel-peach/20 blur-3xl" />
-        <div className="absolute bottom-20 left-1/4 w-96 h-96 rounded-full bg-pastel-mint/15 blur-3xl" />
-      </div>
       <div className="text-center mb-24">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
