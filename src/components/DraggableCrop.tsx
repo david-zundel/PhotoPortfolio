@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Move, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -83,17 +83,21 @@ const DraggableCrop = ({
     setEditing(false);
   };
 
+  const imgStyle = useMemo(() => ({ objectPosition: `${cropX}% ${cropY}%` }), [cropX, cropY]);
+  const imgClassName = `absolute inset-0 w-full h-full object-cover ${
+    editing ? "cursor-grab active:cursor-grabbing" : ""
+  } ${!editing ? "group-hover:scale-105 transition-transform duration-700" : ""}`;
+  const handleFullLoad = useCallback(() => setLoaded(true), []);
+
   return (
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
       <ProgressiveImage
         src={src}
-        className={`absolute inset-0 w-full h-full object-cover ${
-          editing ? "cursor-grab active:cursor-grabbing" : ""
-        } ${!editing ? "group-hover:scale-105 transition-transform duration-700" : ""}`}
-        style={{ objectPosition: `${cropX}% ${cropY}%` }}
+        className={imgClassName}
+        style={imgStyle}
         fetchPriority="high"
         draggable={false}
-        onFullLoad={() => setLoaded(true)}
+        onFullLoad={handleFullLoad}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
