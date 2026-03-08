@@ -11,7 +11,7 @@ import ScrollReveal from "@/components/ScrollReveal";
 
 type OrbConfig = {
   cls: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
 };
 
 const ORBS: OrbConfig[] = [
