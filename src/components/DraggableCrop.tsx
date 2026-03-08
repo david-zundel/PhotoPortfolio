@@ -27,6 +27,7 @@ const DraggableCrop = ({
   const [cropX, setCropX] = useState(initialX);
   const [cropY, setCropY] = useState(initialY);
   const [editing, setEditing] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; cx: number; cy: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -87,15 +88,17 @@ const DraggableCrop = ({
         src={src}
         alt=""
         title=""
-        className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ${
-          editing ? "cursor-grab active:cursor-grabbing" : ""
-        } ${!editing ? "group-hover:scale-105" : ""}`}
+        className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out ${
+          loaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]"
+        } ${editing ? "cursor-grab active:cursor-grabbing" : ""} ${
+          !editing ? "group-hover:scale-105" : ""
+        }`}
         style={{ objectPosition: `${cropX}% ${cropY}%` }}
         draggable={false}
+        onLoad={() => setLoaded(true)}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        loading="lazy"
       />
 
       {isAdmin && !editing && (
