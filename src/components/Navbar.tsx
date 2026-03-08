@@ -34,7 +34,7 @@ const Navbar = () => {
       transition={{ duration: 0.8, ease: "easeOut" }}
       className="fixed top-0 left-0 right-0 z-50 flex justify-center py-6"
     >
-      <div className="flex gap-1 rounded-full bg-background/70 backdrop-blur-xl px-2 py-1.5 shadow-lg border border-border">
+      <div className="flex gap-0.5 sm:gap-1 rounded-full bg-background/70 backdrop-blur-xl px-1.5 sm:px-2 py-1.5 shadow-lg border border-border max-w-[95vw] overflow-x-auto">
         {sections.map((s) => (
           <button
             key={s}
