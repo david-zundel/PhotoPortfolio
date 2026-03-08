@@ -88,7 +88,16 @@ const Gallery = () => {
                 onClick={() => handlePhotoClick(i)}
               >
                 <div className="relative overflow-hidden rounded-xl">
-                  <img src={getPreviewUrl(photo.src, 800, 70)} alt={photo.alt || ""} className="w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <img 
+                    src={getPreviewUrl(photo.src, 1920, 70)} 
+                    alt={photo.alt || ""} 
+                    className="w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    loading="lazy"
+                    onError={(e) => {
+                      // Fallback to original if transform fails
+                      e.currentTarget.src = photo.src;
+                    }}
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
                   {photo.location && (
                     <div className="absolute bottom-3 left-3 bg-foreground/50 backdrop-blur-md rounded-full px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-400">

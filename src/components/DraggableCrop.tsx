@@ -3,7 +3,6 @@ import { Move, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ProgressiveImage from "./ProgressiveImage";
-import { getPreviewUrl } from "@/lib/image-utils";
 
 interface DraggableCropProps {
   src: string;
@@ -93,7 +92,9 @@ const DraggableCrop = ({
   return (
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
       <ProgressiveImage
-        src={getPreviewUrl(src, 800, 70)}
+        src={src}
+        previewWidth={3840}
+        previewQuality={80}
         className={imgClassName}
         style={imgStyle}
         fetchPriority="high"
