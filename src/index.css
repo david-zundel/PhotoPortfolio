@@ -83,7 +83,7 @@
   }
 
   .section-title-landscapes {
-    background: linear-gradient(135deg, hsl(160 45% 38%), hsl(180 40% 42%));
+    background: linear-gradient(135deg, hsl(160 50% 30%), hsl(180 45% 34%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
