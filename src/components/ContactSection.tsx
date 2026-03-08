@@ -3,10 +3,6 @@ import ScrollReveal from "./ScrollReveal";
 const ContactSection = () => {
   return (
     <section id="contact" className="relative py-40 px-6 text-center">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 rounded-full bg-pastel-peach/15 blur-3xl" />
-        <div className="absolute top-0 right-1/4 w-80 h-80 rounded-full bg-pastel-sky/15 blur-3xl" />
-      </div>
 
       <ScrollReveal className="relative z-10">
         <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">

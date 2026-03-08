@@ -3,12 +3,6 @@ import { motion } from "framer-motion";
 const HeroSection = () => {
   return (
     <section id="home" className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-6">
-      {/* Pastel gradient orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-pastel-coral/20 blur-3xl" />
-        <div className="absolute top-1/3 -right-20 w-80 h-80 rounded-full bg-pastel-lavender/20 blur-3xl" />
-        <div className="absolute -bottom-20 left-1/3 w-72 h-72 rounded-full bg-pastel-mint/20 blur-3xl" />
-      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 40 }}
