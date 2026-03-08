@@ -14,6 +14,7 @@ type OrbConfig = {
 };
 
 const ORBS: OrbConfig[] = [
+  { cls: "absolute top-[5vh] left-[-5vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-lavender/30 blur-[60px]" },
   { cls: "absolute top-[60vh] -left-40 w-[38vw] h-[38vw] max-w-[600px] max-h-[600px] min-w-[260px] min-h-[260px] rounded-full bg-pastel-coral/25 blur-[60px]" },
   { cls: "absolute top-[5vh] right-[-8vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-peach/30 blur-[60px]" },
   { cls: "absolute top-[25vh] left-[25vw] w-[30vw] h-[30vw] max-w-[480px] max-h-[480px] min-w-[200px] min-h-[200px] rounded-full blur-[60px]", style: { background: "hsl(340 55% 75% / 0.25)" } },
