@@ -31,7 +31,7 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
         </ScrollReveal>
 
         <ScrollReveal className="flex-1 max-w-lg" direction={isEven ? "right" : "left"} delay={0.3}>
-          <span className="country-label mb-6 inline-block">{country}</span>
+          
           <h3
             className="text-4xl md:text-5xl font-bold font-display mt-4 mb-6 bg-clip-text text-transparent inline-block"
             style={{
