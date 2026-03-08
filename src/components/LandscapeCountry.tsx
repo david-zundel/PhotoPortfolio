@@ -15,8 +15,8 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
   const isEven = index % 2 === 0;
 
   return (
-    <div className="min-h-screen flex items-center py-20 px-6 md:px-12 lg:px-24">
-      <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-12 lg:gap-20 items-center w-full max-w-7xl mx-auto`}>
+    <div className="min-h-0 lg:min-h-screen flex items-center py-10 md:py-20 px-6 md:px-12 lg:px-24">
+      <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-6 md:gap-12 lg:gap-20 items-center w-full max-w-7xl mx-auto`}>
         <ScrollReveal className="flex-1" direction={isEven ? "left" : "right"} delay={0.1}>
           <div
             className="relative group cursor-pointer"
