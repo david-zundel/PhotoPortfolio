@@ -80,6 +80,7 @@
   .section-title {
     @apply text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight;
     font-family: var(--font-display);
+    padding-bottom: 0.15em;
   }
 
   .section-title-landscapes {
