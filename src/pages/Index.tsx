@@ -12,7 +12,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Global flowing pastel orbs — draggable! */}
-      <div className="absolute inset-0 z-20 pointer-events-none">
+      <div className="absolute inset-0 z-5 pointer-events-none">
         {[
           { cls: "absolute top-[60vh] -left-40 w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[250px] min-h-[250px] rounded-full bg-pastel-coral/35 blur-3xl" },
           { cls: "absolute top-[5vh] right-[-8vw] w-[32vw] h-[32vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full bg-pastel-peach/40 blur-3xl" },
