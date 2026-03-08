@@ -50,74 +50,63 @@ const Lightbox = ({ images, initialIndex, isOpen, onClose }: LightboxProps) => {
   const current = images[currentIndex];
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/90 backdrop-blur-sm"
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-foreground/90 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      {/* Close button */}
+      <button
         onClick={onClose}
+        className="absolute top-6 right-6 text-primary-foreground/80 hover:text-primary-foreground transition-colors z-10"
       >
-        {/* Close button */}
+        <X size={32} />
+      </button>
+
+      {/* Previous */}
+      {images.length > 1 && (
         <button
-          onClick={onClose}
-          className="absolute top-6 right-6 text-primary-foreground/80 hover:text-primary-foreground transition-colors z-10"
+          onClick={(e) => { e.stopPropagation(); goPrev(); }}
+          className="absolute left-6 text-primary-foreground/60 hover:text-primary-foreground transition-colors z-10"
         >
-          <X size={32} />
+          <ChevronLeft size={48} />
         </button>
+      )}
 
-        {/* Previous */}
-        {images.length > 1 && (
-          <button
-            onClick={(e) => { e.stopPropagation(); goPrev(); }}
-            className="absolute left-6 text-primary-foreground/60 hover:text-primary-foreground transition-colors z-10"
-          >
-            <ChevronLeft size={48} />
-          </button>
+      {/* Image */}
+      <div
+        className="relative max-w-[90vw] max-h-[85vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <img
+          src={current.src}
+          alt={current.alt || ""}
+          className="max-w-full max-h-[85vh] object-contain rounded-lg"
+        />
+        {current.location && (
+          <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-foreground/60 backdrop-blur-md rounded-full px-4 py-2">
+            <MapPin size={16} className="text-primary-foreground/80" />
+            <span className="text-sm font-body text-primary-foreground/90">{current.location}</span>
+          </div>
         )}
+        {images.length > 1 && (
+          <div className="absolute bottom-4 right-4 bg-foreground/60 backdrop-blur-md rounded-full px-4 py-2">
+            <span className="text-sm font-body text-primary-foreground/80">
+              {currentIndex + 1} / {images.length}
+            </span>
+          </div>
+        )}
+      </div>
 
-        {/* Image */}
-        <motion.div
-          key={currentIndex}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="relative max-w-[90vw] max-h-[85vh]"
-          onClick={(e) => e.stopPropagation()}
+      {/* Next */}
+      {images.length > 1 && (
+        <button
+          onClick={(e) => { e.stopPropagation(); goNext(); }}
+          className="absolute right-6 text-primary-foreground/60 hover:text-primary-foreground transition-colors z-10"
         >
-          <img
-            src={current.src}
-            alt={current.alt || ""}
-            className="max-w-full max-h-[85vh] object-contain rounded-lg"
-          />
-          {/* Location info */}
-          {current.location && (
-            <div className="absolute bottom-4 left-4 flex items-center gap-2 bg-foreground/60 backdrop-blur-md rounded-full px-4 py-2">
-              <MapPin size={16} className="text-primary-foreground/80" />
-              <span className="text-sm font-body text-primary-foreground/90">{current.location}</span>
-            </div>
-          )}
-          {/* Counter */}
-          {images.length > 1 && (
-            <div className="absolute bottom-4 right-4 bg-foreground/60 backdrop-blur-md rounded-full px-4 py-2">
-              <span className="text-sm font-body text-primary-foreground/80">
-                {currentIndex + 1} / {images.length}
-              </span>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Next */}
-        {images.length > 1 && (
-          <button
-            onClick={(e) => { e.stopPropagation(); goNext(); }}
-            className="absolute right-6 text-primary-foreground/60 hover:text-primary-foreground transition-colors z-10"
-          >
-            <ChevronRight size={48} />
-          </button>
-        )}
-      </motion.div>
-    </AnimatePresence>
+          <ChevronRight size={48} />
+        </button>
+      )}
+    </div>
   );
 };
 
