@@ -21,15 +21,15 @@ const ContactSection = () => {
           Available for commissions, collaborations, and print inquiries worldwide.
         </p>
         <a
-          href="mailto:hello@elenavasquez.com"
+          href="mailto:hello@davidzundel.com"
           className="nav-pill active inline-block text-base"
         >
-          hello@elenavasquez.com
+          hello@davidzundel.com
         </a>
       </ScrollReveal>
 
       <div className="mt-32 text-sm text-muted-foreground font-body">
-        © 2026 Elena Vasquez Photography. All rights reserved.
+        © 2026 David Zundel Photography. All rights reserved.
       </div>
     </section>
   );

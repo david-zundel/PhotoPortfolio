@@ -23,7 +23,7 @@ const LandscapeCountry = ({ country, description, image, index, color }: Landsca
             <img
               src={image}
               alt={`Landscape of ${country}`}
-              className="relative w-full h-[60vh] object-cover rounded-2xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]"
+              className="relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]"
               loading="lazy"
             />
           </div>

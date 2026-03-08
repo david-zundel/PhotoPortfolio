@@ -1,14 +1,10 @@
 import ScrollReveal from "./ScrollReveal";
-import portrait1 from "@/assets/portrait-1.jpg";
-import portrait2 from "@/assets/portrait-2.jpg";
-import portrait3 from "@/assets/portrait-3.jpg";
-import portrait4 from "@/assets/portrait-4.jpg";
 
 const portraits = [
-  { src: portrait1, title: "Golden Hour", subtitle: "Natural light editorial" },
-  { src: portrait2, title: "Shadow Play", subtitle: "Studio dramatic" },
-  { src: portrait3, title: "Timeless", subtitle: "Documentary portrait" },
-  { src: portrait4, title: "Pure Joy", subtitle: "Candid moments" },
+  { src: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop", title: "Golden Hour", subtitle: "Natural light editorial" },
+  { src: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=1200&h=800&fit=crop", title: "Shadow Play", subtitle: "Studio dramatic" },
+  { src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&h=800&fit=crop", title: "Timeless", subtitle: "Documentary portrait" },
+  { src: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=1200&h=800&fit=crop", title: "Pure Joy", subtitle: "Candid moments" },
 ];
 
 const PortraitsSection = () => {
@@ -31,7 +27,7 @@ const PortraitsSection = () => {
               <img
                 src={p.src}
                 alt={p.title}
-                className="w-full h-[70vh] object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full aspect-[3/2] object-cover transition-transform duration-700 group-hover:scale-105"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

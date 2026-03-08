@@ -15,7 +15,7 @@
     --popover: 30 30% 97%;
     --popover-foreground: 240 10% 10%;
 
-    --primary: 350 65% 70%;
+    --primary: 210 50% 72%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 180 40% 75%;
@@ -32,11 +32,11 @@
 
     --border: 30 15% 88%;
     --input: 30 15% 88%;
-    --ring: 350 65% 70%;
+    --ring: 210 50% 72%;
 
     --radius: 0.75rem;
 
-    --pastel-coral: 350 65% 70%;
+    --pastel-coral: 210 50% 72%;
     --pastel-mint: 160 40% 75%;
     --pastel-lavender: 270 40% 78%;
     --pastel-peach: 25 80% 82%;
