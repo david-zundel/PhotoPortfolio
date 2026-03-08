@@ -22,7 +22,7 @@ const Index = () => {
         {/* Landscapes area — earthy greens, teals, sky */}
         <div className="absolute top-[90vh] left-[15vw] w-[550px] h-[550px] rounded-full bg-pastel-mint/40 blur-3xl" />
         <div className="absolute top-[110vh] right-[-5vw] w-[500px] h-[500px] rounded-full bg-pastel-sky/38 blur-3xl" />
-        <div className="absolute top-[130vh] left-[-8vw] w-[450px] h-[450px] rounded-full" style={{ background: 'hsl(140 40% 72% / 0.35)' }} />
+        <div className="absolute top-[130vh] left-[-8vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(140 40% 72% / 0.35)' }} />
         <div className="absolute top-[150vh] right-[20vw] w-[500px] h-[500px] rounded-full bg-pastel-lemon/30 blur-3xl" />
         <div className="absolute top-[170vh] left-[30vw] w-[400px] h-[400px] rounded-full bg-pastel-sky/35 blur-3xl" />
         <div className="absolute top-[190vh] right-[5vw] w-[550px] h-[550px] rounded-full bg-pastel-mint/35 blur-3xl" />
