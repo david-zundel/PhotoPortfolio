@@ -70,12 +70,14 @@ const Admin = () => {
     if (data) setPhotos(data as Photo[]);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+  const handleUpload = async () => {
+    const files = fileInputRef.current?.files;
     if (!files || files.length === 0) return;
 
+    const fileList = Array.from(files);
     setUploading(true);
-    for (const file of Array.from(files)) {
+    
+    for (const file of fileList) {
       const fileExt = file.name.split(".").pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
@@ -113,9 +115,9 @@ const Admin = () => {
     setDescription("");
     setSubtitle("");
     setHomepage(false);
-    toast({ title: "Photos uploaded!" });
+    toast({ title: `${fileList.length} photo(s) uploaded!` });
     fetchPhotos();
-    e.target.value = "";
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleToggleHomepage = async (photo: Photo) => {
