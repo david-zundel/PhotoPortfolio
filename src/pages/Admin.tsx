@@ -71,14 +71,17 @@ const Admin = () => {
     if (data) setPhotos(data as Photo[]);
   };
 
-  const handleUpload = async () => {
-    const files = fileInputRef.current?.files;
-    if (!files || files.length === 0) return;
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFiles(Array.from(e.target.files));
+    }
+  };
 
-    const fileList = Array.from(files);
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) return;
+
     setUploading(true);
-    
-    for (const file of fileList) {
+    for (const file of selectedFiles) {
       const fileExt = file.name.split(".").pop();
       const filePath = `${crypto.randomUUID()}.${fileExt}`;
 
@@ -116,7 +119,8 @@ const Admin = () => {
     setDescription("");
     setSubtitle("");
     setHomepage(false);
-    toast({ title: `${fileList.length} photo(s) uploaded!` });
+    setSelectedFiles([]);
+    toast({ title: `${selectedFiles.length} photo(s) uploaded!` });
     fetchPhotos();
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
