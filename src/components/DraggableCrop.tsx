@@ -92,7 +92,9 @@ const DraggableCrop = ({
   return (
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
       <ProgressiveImage
-        src={getPreviewUrl(src, 800, 70)}
+        src={src}
+        previewWidth={3840}
+        previewQuality={80}
         className={imgClassName}
         style={imgStyle}
         fetchPriority="high"
