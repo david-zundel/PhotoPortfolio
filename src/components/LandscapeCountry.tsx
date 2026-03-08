@@ -21,7 +21,7 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
       <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-6 md:gap-12 lg:gap-20 items-center w-full max-w-7xl mx-auto`}>
         <ScrollReveal className="flex-1" direction={isEven ? "left" : "right"} delay={0.1}>
           <div
-            className="relative group cursor-pointer"
+            className="relative group cursor-pointer rounded-2xl overflow-hidden bg-muted"
             onClick={() => onImageClick([{ src: image, alt: `Landscape of ${country}`, location: country }], 0)}
           >
             <div
