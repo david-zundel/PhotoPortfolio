@@ -35,6 +35,10 @@ const Admin = () => {
   const [subtitle, setSubtitle] = useState("");
   const [homepage, setHomepage] = useState(false);
   const [category, setCategory] = useState<"landscape" | "portrait">("landscape");
+  const [editPhoto, setEditPhoto] = useState<Photo | null>(null);
+  const [editLocation, setEditLocation] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editAlt, setEditAlt] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
