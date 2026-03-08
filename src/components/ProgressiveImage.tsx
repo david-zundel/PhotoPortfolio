@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 
 interface ProgressiveImageProps {
   src: string;
@@ -13,11 +13,13 @@ interface ProgressiveImageProps {
   onFullLoad?: () => void;
 }
 
+// Global cache so images that have loaded once never re-trigger transitions
+const loadedCache = new Set<string>();
+
 const getThumbUrl = (src: string) => {
   try {
     const url = new URL(src);
     if (url.pathname.includes("/storage/v1/object/public/")) {
-      // Use Supabase render endpoint for transforms
       const renderPath = url.pathname.replace(
         "/storage/v1/object/public/",
         "/storage/v1/render/image/public/"
@@ -28,7 +30,7 @@ const getThumbUrl = (src: string) => {
   return src;
 };
 
-const ProgressiveImage = ({
+const ProgressiveImage = memo(({
   src,
   alt = "",
   className = "",
@@ -40,19 +42,41 @@ const ProgressiveImage = ({
   onPointerUp,
   onFullLoad,
 }: ProgressiveImageProps) => {
-  const [fullLoaded, setFullLoaded] = useState(false);
-  const [thumbLoaded, setThumbLoaded] = useState(false);
+  const alreadyCached = loadedCache.has(src);
+  const [fullLoaded, setFullLoaded] = useState(alreadyCached);
   const thumbSrc = getThumbUrl(src);
 
-  // Reset on src change
   useEffect(() => {
-    setFullLoaded(false);
-    setThumbLoaded(false);
+    if (loadedCache.has(src)) {
+      setFullLoaded(true);
+    }
   }, [src]);
+
+  const handleLoad = () => {
+    loadedCache.add(src);
+    setFullLoaded(true);
+    onFullLoad?.();
+  };
+
+  // Already cached — render single static image, no transitions
+  if (alreadyCached) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        title=""
+        className={className}
+        style={style}
+        draggable={draggable}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+      />
+    );
+  }
 
   return (
     <>
-      {/* Tiny blurred preview */}
       {!fullLoaded && (
         <img
           src={thumbSrc}
@@ -63,7 +87,6 @@ const ProgressiveImage = ({
           draggable={false}
         />
       )}
-      {/* Full resolution */}
       <img
         src={src}
         alt={alt}
@@ -75,16 +98,15 @@ const ProgressiveImage = ({
         fetchPriority={fetchPriority}
         decoding="async"
         draggable={draggable}
-        onLoad={() => {
-          setFullLoaded(true);
-          onFullLoad?.();
-        }}
+        onLoad={handleLoad}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       />
     </>
   );
-};
+});
+
+ProgressiveImage.displayName = "ProgressiveImage";
 
 export default ProgressiveImage;
