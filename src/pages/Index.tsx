@@ -19,28 +19,36 @@ const Index = () => {
         <div className="absolute top-[55vh] left-[-5vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(15 70% 75% / 0.35)' }} />
         <div className="absolute top-[70vh] right-[30vw] w-[400px] h-[400px] rounded-full bg-pastel-peach/35 blur-3xl" />
 
-        {/* Landscapes area — earthy greens, teals, sky */}
+        {/* Landscapes area — spreads across ~600vh worth of content */}
         <div className="absolute top-[90vh] left-[15vw] w-[550px] h-[550px] rounded-full bg-pastel-mint/40 blur-3xl" />
-        <div className="absolute top-[110vh] right-[-5vw] w-[500px] h-[500px] rounded-full bg-pastel-sky/38 blur-3xl" />
-        <div className="absolute top-[130vh] left-[-8vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(140 40% 72% / 0.35)' }} />
-        <div className="absolute top-[150vh] right-[20vw] w-[500px] h-[500px] rounded-full bg-pastel-lemon/30 blur-3xl" />
-        <div className="absolute top-[170vh] left-[30vw] w-[400px] h-[400px] rounded-full bg-pastel-sky/35 blur-3xl" />
-        <div className="absolute top-[190vh] right-[5vw] w-[550px] h-[550px] rounded-full bg-pastel-mint/35 blur-3xl" />
+        <div className="absolute top-[130vh] right-[-5vw] w-[500px] h-[500px] rounded-full bg-pastel-sky/38 blur-3xl" />
+        <div className="absolute top-[170vh] left-[-8vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(140 40% 72% / 0.35)' }} />
+        <div className="absolute top-[210vh] right-[20vw] w-[500px] h-[500px] rounded-full bg-pastel-lemon/35 blur-3xl" />
+        <div className="absolute top-[250vh] left-[30vw] w-[500px] h-[500px] rounded-full bg-pastel-sky/35 blur-3xl" />
+        <div className="absolute top-[290vh] right-[5vw] w-[550px] h-[550px] rounded-full bg-pastel-mint/35 blur-3xl" />
+        <div className="absolute top-[330vh] left-[-5vw] w-[500px] h-[500px] rounded-full blur-3xl" style={{ background: 'hsl(15 70% 75% / 0.35)' }} />
+        <div className="absolute top-[370vh] right-[15vw] w-[450px] h-[450px] rounded-full bg-pastel-peach/38 blur-3xl" />
+        <div className="absolute top-[410vh] left-[20vw] w-[500px] h-[500px] rounded-full bg-pastel-lemon/35 blur-3xl" />
+        <div className="absolute top-[450vh] right-[-3vw] w-[550px] h-[550px] rounded-full blur-3xl" style={{ background: 'hsl(340 55% 75% / 0.35)' }} />
+        <div className="absolute top-[490vh] left-[10vw] w-[500px] h-[500px] rounded-full bg-pastel-coral/35 blur-3xl" />
+        <div className="absolute top-[530vh] right-[25vw] w-[450px] h-[450px] rounded-full bg-pastel-mint/38 blur-3xl" />
+        <div className="absolute top-[570vh] left-[-5vw] w-[500px] h-[500px] rounded-full bg-pastel-sky/35 blur-3xl" />
+        <div className="absolute top-[610vh] right-[10vw] w-[550px] h-[550px] rounded-full bg-pastel-lavender/38 blur-3xl" />
 
-        {/* Transition — cool to warm lavender, rose */}
-        <div className="absolute top-[210vh] left-[5vw] w-[500px] h-[500px] rounded-full bg-pastel-lavender/40 blur-3xl" />
-        <div className="absolute top-[230vh] right-[15vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(330 50% 72% / 0.35)' }} />
+        {/* Transition to Portraits */}
+        <div className="absolute top-[650vh] left-[5vw] w-[500px] h-[500px] rounded-full bg-pastel-lavender/40 blur-3xl" />
+        <div className="absolute top-[690vh] right-[15vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(330 50% 72% / 0.35)' }} />
 
-        {/* Portraits area — warm pinks, lavender, rose gold */}
-        <div className="absolute top-[250vh] left-[20vw] w-[550px] h-[550px] rounded-full blur-3xl" style={{ background: 'hsl(350 55% 75% / 0.38)' }} />
-        <div className="absolute top-[270vh] right-[-3vw] w-[500px] h-[500px] rounded-full bg-pastel-lavender/35 blur-3xl" />
-        <div className="absolute top-[290vh] left-[-5vw] w-[450px] h-[450px] rounded-full bg-pastel-peach/40 blur-3xl" />
-        <div className="absolute top-[310vh] right-[25vw] w-[400px] h-[400px] rounded-full blur-3xl" style={{ background: 'hsl(10 65% 78% / 0.35)' }} />
+        {/* Portraits area */}
+        <div className="absolute top-[730vh] left-[20vw] w-[550px] h-[550px] rounded-full blur-3xl" style={{ background: 'hsl(350 55% 75% / 0.38)' }} />
+        <div className="absolute top-[770vh] right-[-3vw] w-[500px] h-[500px] rounded-full bg-pastel-lavender/35 blur-3xl" />
+        <div className="absolute top-[810vh] left-[-5vw] w-[450px] h-[450px] rounded-full bg-pastel-peach/40 blur-3xl" />
+        <div className="absolute top-[850vh] right-[25vw] w-[400px] h-[400px] rounded-full blur-3xl" style={{ background: 'hsl(10 65% 78% / 0.35)' }} />
 
-        {/* Contact area — sunset blend, gold, coral, sky */}
-        <div className="absolute top-[330vh] left-[10vw] w-[550px] h-[550px] rounded-full bg-pastel-lemon/38 blur-3xl" />
-        <div className="absolute top-[350vh] right-[10vw] w-[500px] h-[500px] rounded-full bg-pastel-coral/35 blur-3xl" />
-        <div className="absolute top-[370vh] left-[25vw] w-[450px] h-[450px] rounded-full bg-pastel-sky/30 blur-3xl" />
+        {/* Contact area */}
+        <div className="absolute top-[890vh] left-[10vw] w-[550px] h-[550px] rounded-full bg-pastel-lemon/38 blur-3xl" />
+        <div className="absolute top-[930vh] right-[10vw] w-[500px] h-[500px] rounded-full bg-pastel-coral/35 blur-3xl" />
+        <div className="absolute top-[970vh] left-[25vw] w-[450px] h-[450px] rounded-full bg-pastel-sky/35 blur-3xl" />
       </div>
       <div className="relative z-10">
         <Navbar />
