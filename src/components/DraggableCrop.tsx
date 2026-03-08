@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Move, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import ProgressiveImage from "./ProgressiveImage";
 
 interface DraggableCropProps {
   src: string;
