@@ -35,6 +35,7 @@ const Admin = () => {
   const [subtitle, setSubtitle] = useState("");
   const [homepage, setHomepage] = useState(false);
   const [category, setCategory] = useState<"landscape" | "portrait">("landscape");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editPhoto, setEditPhoto] = useState<Photo | null>(null);
   const [editLocation, setEditLocation] = useState("");
   const [editDescription, setEditDescription] = useState("");
