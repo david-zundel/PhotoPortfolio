@@ -31,8 +31,10 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
             <img
               src={image}
               alt={`Landscape of ${country}`}
-              className="relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]"
-              loading="lazy"
+              className={`relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-all duration-700 group-hover:scale-[1.02] ${
+                loaded ? "opacity-100" : "opacity-0"
+              }`}
+              onLoad={() => setLoaded(true)}
             />
           </div>
         </ScrollReveal>
