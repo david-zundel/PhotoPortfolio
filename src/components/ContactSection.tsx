@@ -2,7 +2,7 @@ import ScrollReveal from "./ScrollReveal";
 
 const ContactSection = () => {
   return (
-    <section id="contact" className="relative py-40 px-6 text-center">
+    <section id="contact" className="relative py-20 md:py-40 px-6 text-center">
 
       <ScrollReveal className="relative z-10">
         <h2 className="section-title section-title-contact mb-10">
@@ -16,7 +16,7 @@ const ContactSection = () => {
         </a>
       </ScrollReveal>
 
-      <div className="mt-32 text-sm text-muted-foreground font-body">
+      <div className="mt-16 md:mt-32 text-sm text-muted-foreground font-body">
         © 2026 David Zundel Photography. All rights reserved.
       </div>
     </section>

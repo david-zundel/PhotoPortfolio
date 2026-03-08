@@ -53,7 +53,7 @@ const LandscapesSection = () => {
 
   return (
     <section id="landscapes" className="relative">
-      <div className="pt-32 pb-12 px-6 text-center relative z-10">
+      <div className="pt-16 md:pt-32 pb-6 md:pb-12 px-6 text-center relative z-10">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection One

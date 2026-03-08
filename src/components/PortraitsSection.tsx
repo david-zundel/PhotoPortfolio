@@ -45,8 +45,8 @@ const PortraitsSection = () => {
   if (portraits.length === 0) return null;
 
   return (
-    <section id="portraits" className="relative py-32 px-6">
-      <div className="text-center mb-24">
+    <section id="portraits" className="relative py-16 md:py-32 px-6">
+      <div className="text-center mb-12 md:mb-24">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection Two
