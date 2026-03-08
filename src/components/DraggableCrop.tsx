@@ -3,7 +3,6 @@ import { Move, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import ProgressiveImage from "./ProgressiveImage";
-import { getPreviewUrl } from "@/lib/image-utils";
 
 interface DraggableCropProps {
   src: string;
