@@ -11,13 +11,8 @@ import DraggableOrbs from "@/components/DraggableOrbs";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Orb layer — behind content (z-0), not interactive */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <DraggableOrbs />
-      </div>
-
-      {/* Content layer — above orbs */}
-      <div className="relative z-10 pointer-events-auto">
+      {/* Content */}
+      <div className="relative z-10">
         <Navbar />
         <HeroSection />
         <LandscapesSection />
@@ -39,8 +34,8 @@ const Index = () => {
         <ContactSection />
       </div>
 
-      {/* Invisible drag handles — on top of everything (z-20), only the handle dots are interactive */}
-      <div className="fixed inset-0 z-20 pointer-events-none overflow-hidden">
+      {/* Draggable orbs — z-20, container is pointer-events-none so clicks pass through to content, each orb is pointer-events-auto for dragging */}
+      <div className="absolute inset-0 z-20 pointer-events-none overflow-visible">
         <DraggableOrbs />
       </div>
     </div>
