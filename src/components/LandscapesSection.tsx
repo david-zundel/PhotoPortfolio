@@ -21,7 +21,7 @@ const countries = [
     description: "Where fire meets ice — aurora borealis illuminating volcanic shores. A landscape so otherworldly it feels like stepping onto another planet.",
     image: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200&h=800&fit=crop",
     color: "hsl(160 40% 75% / 0.15)",
-    textColor: "hsl(160 45% 32%)",
+    textGradient: "linear-gradient(135deg, hsl(160 48% 45%), hsl(180 42% 48%))",
   },
   {
     country: "Italy",
