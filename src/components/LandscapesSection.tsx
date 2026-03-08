@@ -28,7 +28,7 @@ const countries = [
     description: "Sun-drenched coastlines adorned with pastel villages cascading toward turquoise waters. The Amalfi Coast in all its Mediterranean splendor.",
     image: "https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=1200&h=800&fit=crop",
     color: "hsl(25 80% 82% / 0.15)",
-    textGradient: "linear-gradient(135deg, hsl(25 48% 42%), hsl(15 42% 44%))",
+    textGradient: "linear-gradient(135deg, hsl(15 45% 40%), hsl(35 42% 50%))",
   },
   {
     country: "Argentina",
