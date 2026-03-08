@@ -85,20 +85,15 @@ const DraggableCrop = ({
 
   return (
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
-      <img
+      <ProgressiveImage
         src={src}
-        alt=""
-        title=""
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ease-out ${
-          loaded ? "opacity-100" : "opacity-0"
-        } ${editing ? "cursor-grab active:cursor-grabbing" : ""} ${
-          !editing ? "group-hover:scale-105 transition-transform duration-700" : ""
-        }`}
-        style={{ objectPosition: `${cropX}% ${cropY}%`, willChange: "opacity" }}
-        draggable={false}
+        className={`absolute inset-0 w-full h-full object-cover ${
+          editing ? "cursor-grab active:cursor-grabbing" : ""
+        } ${!editing ? "group-hover:scale-105 transition-transform duration-700" : ""}`}
+        style={{ objectPosition: `${cropX}% ${cropY}%` }}
         fetchPriority="high"
-        decoding="async"
-        onLoad={() => setLoaded(true)}
+        draggable={false}
+        onFullLoad={() => setLoaded(true)}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
