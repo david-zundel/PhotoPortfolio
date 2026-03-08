@@ -53,17 +53,16 @@ const ProgressiveImage = ({
   return (
     <>
       {/* Tiny blurred preview */}
-      <img
-        src={thumbSrc}
-        alt=""
-        aria-hidden
-        className={`${className} transition-opacity duration-300 ${
-          thumbLoaded && !fullLoaded ? "opacity-100" : "opacity-0"
-        }`}
-        style={{ ...style, filter: "blur(20px)", transform: "scale(1.1)" }}
-        onLoad={() => setThumbLoaded(true)}
-        draggable={false}
-      />
+      {!fullLoaded && (
+        <img
+          src={thumbSrc}
+          alt=""
+          aria-hidden
+          className={className}
+          style={{ ...style, filter: "blur(20px)", transform: "scale(1.1)", zIndex: 1 }}
+          draggable={false}
+        />
+      )}
       {/* Full resolution */}
       <img
         src={src}
@@ -72,7 +71,7 @@ const ProgressiveImage = ({
         className={`${className} transition-opacity duration-500 ${
           fullLoaded ? "opacity-100" : "opacity-0"
         }`}
-        style={style}
+        style={{ ...style, zIndex: 2 }}
         fetchPriority={fetchPriority}
         decoding="async"
         draggable={draggable}
