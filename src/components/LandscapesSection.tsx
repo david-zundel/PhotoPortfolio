@@ -7,7 +7,7 @@ const countries = [
     description: "Alpine peaks kissed by golden light, where pristine lakes mirror the heavens. Each frame captures the raw grandeur of nature's cathedral.",
     image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=1200&h=800&fit=crop",
     color: "hsl(200 60% 78% / 0.15)",
-    textColor: "hsl(200 55% 38%)",
+    textGradient: "linear-gradient(135deg, hsl(200 55% 50%), hsl(220 50% 55%))",
   },
   {
     country: "Japan",
