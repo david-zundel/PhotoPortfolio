@@ -20,6 +20,8 @@ export type Database = {
           category: string
           color: string | null
           created_at: string | null
+          crop_x: number
+          crop_y: number
           description: string | null
           homepage: boolean
           id: string
@@ -34,6 +36,8 @@ export type Database = {
           category?: string
           color?: string | null
           created_at?: string | null
+          crop_x?: number
+          crop_y?: number
           description?: string | null
           homepage?: boolean
           id?: string
@@ -48,6 +52,8 @@ export type Database = {
           category?: string
           color?: string | null
           created_at?: string | null
+          crop_x?: number
+          crop_y?: number
           description?: string | null
           homepage?: boolean
           id?: string

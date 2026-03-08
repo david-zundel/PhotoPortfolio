@@ -1,18 +1,35 @@
 import { useState, useEffect } from "react";
 import ScrollReveal from "./ScrollReveal";
 import Lightbox, { LightboxImage } from "./Lightbox";
+import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
 
 type PortraitData = {
+  id: string;
   src: string;
   title: string;
   subtitle: string;
+  cropX: number;
+  cropY: number;
 };
 
 const PortraitsSection = () => {
   const [portraits, setPortraits] = useState<PortraitData[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAdmin(!!session);
+    };
+    checkSession();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setIsAdmin(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -27,9 +44,12 @@ const PortraitsSection = () => {
       if (data) {
         setPortraits(
           data.map((p: any) => ({
+            id: p.id,
             src: p.src,
             title: p.alt || "Untitled",
             subtitle: p.subtitle || "",
+            cropX: p.crop_x ?? 50,
+            cropY: p.crop_y ?? 50,
           }))
         );
       }
@@ -41,6 +61,12 @@ const PortraitsSection = () => {
     src: p.src,
     alt: p.title,
   }));
+
+  const handleCropSave = (index: number, x: number, y: number) => {
+    setPortraits((prev) =>
+      prev.map((p, i) => (i === index ? { ...p, cropX: x, cropY: y } : p))
+    );
+  };
 
   if (portraits.length === 0) return null;
 
@@ -58,20 +84,22 @@ const PortraitsSection = () => {
 
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
         {portraits.map((p, i) => (
-          <ScrollReveal key={p.title + i} delay={i * 0.15} className="group">
+          <ScrollReveal key={p.id} delay={i * 0.15} className="group">
             <div
-              className="relative overflow-hidden rounded-2xl cursor-pointer"
+              className="relative rounded-2xl cursor-pointer overflow-hidden"
               onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
             >
-              <img
+              <DraggableCrop
                 src={p.src}
-                alt=""
-                title=""
-                className="w-full aspect-[2/3] object-cover transition-transform duration-700 group-hover:scale-105"
-                loading="lazy"
+                photoId={p.id}
+                initialX={p.cropX}
+                initialY={p.cropY}
+                isAdmin={isAdmin}
+                aspectClass="aspect-[2/3]"
+                onSave={(x, y) => handleCropSave(i, x, y)}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="absolute bottom-0 left-0 right-0 p-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 p-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
                 <p className="text-sm tracking-[0.2em] uppercase text-primary-foreground/70 font-body mb-1">
                   {p.subtitle}
                 </p>
