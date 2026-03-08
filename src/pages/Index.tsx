@@ -16,7 +16,7 @@ const Index = () => {
 
         {/* Transition — peach to gold to lemon */}
         <div className="absolute top-[40vh] right-[10vw] w-[500px] h-[500px] rounded-full bg-pastel-lemon/38 blur-3xl" />
-        <div className="absolute top-[55vh] left-[-5vw] w-[450px] h-[450px] rounded-full" style={{ background: 'hsl(15 70% 75% / 0.35)' }} />
+        <div className="absolute top-[55vh] left-[-5vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(15 70% 75% / 0.35)' }} />
         <div className="absolute top-[70vh] right-[30vw] w-[400px] h-[400px] rounded-full bg-pastel-peach/35 blur-3xl" />
 
         {/* Landscapes area — earthy greens, teals, sky */}
