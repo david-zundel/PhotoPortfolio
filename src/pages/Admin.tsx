@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { getPreviewUrl } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -241,7 +242,7 @@ const Admin = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {photos.map((photo) => (
             <div key={photo.id} className="group relative rounded-xl overflow-hidden border border-border">
-              <img src={photo.src} alt={photo.alt || ""} className="w-full aspect-square object-cover" />
+              <img src={getPreviewUrl(photo.src, 400, 60)} alt={photo.alt || ""} className="w-full aspect-square object-cover" />
               <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                 <Button
                   variant="secondary"
