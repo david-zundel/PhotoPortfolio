@@ -91,7 +91,7 @@ const Gallery = () => {
                   <img 
                     src={getPreviewUrl(photo.src, 1920, 70)} 
                     alt={photo.alt || ""} 
-                    className="w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                    className="w-full transition-transform duration-500 group-hover:scale-105" 
                     loading="lazy"
                     onError={(e) => {
                       // Fallback to original if transform fails
