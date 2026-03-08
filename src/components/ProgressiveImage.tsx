@@ -1,4 +1,5 @@
 import { useState, useEffect, memo } from "react";
+import { getThumbUrl } from "@/lib/image-utils";
 
 interface ProgressiveImageProps {
   src: string;
@@ -15,20 +16,6 @@ interface ProgressiveImageProps {
 
 // Global cache so images that have loaded once never re-trigger transitions
 const loadedCache = new Set<string>();
-
-const getThumbUrl = (src: string) => {
-  try {
-    const url = new URL(src);
-    if (url.pathname.includes("/storage/v1/object/public/")) {
-      const renderPath = url.pathname.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      );
-      return `${url.origin}${renderPath}?width=60&quality=20`;
-    }
-  } catch {}
-  return src;
-};
 
 const ProgressiveImage = memo(({
   src,
