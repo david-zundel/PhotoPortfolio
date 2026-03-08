@@ -35,7 +35,7 @@ const Index = () => {
         <div className="absolute top-[250vh] left-[20vw] w-[550px] h-[550px] rounded-full blur-3xl" style={{ background: 'hsl(350 55% 75% / 0.38)' }} />
         <div className="absolute top-[270vh] right-[-3vw] w-[500px] h-[500px] rounded-full bg-pastel-lavender/35 blur-3xl" />
         <div className="absolute top-[290vh] left-[-5vw] w-[450px] h-[450px] rounded-full bg-pastel-peach/40 blur-3xl" />
-        <div className="absolute top-[310vh] right-[25vw] w-[400px] h-[400px] rounded-full" style={{ background: 'hsl(10 65% 78% / 0.35)' }} />
+        <div className="absolute top-[310vh] right-[25vw] w-[400px] h-[400px] rounded-full blur-3xl" style={{ background: 'hsl(10 65% 78% / 0.35)' }} />
 
         {/* Contact area — sunset blend, gold, coral, sky */}
         <div className="absolute top-[330vh] left-[10vw] w-[550px] h-[550px] rounded-full bg-pastel-lemon/38 blur-3xl" />
