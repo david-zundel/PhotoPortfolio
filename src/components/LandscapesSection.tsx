@@ -49,7 +49,15 @@ const countries = [
 const LandscapesSection = () => {
   return (
     <section id="landscapes" className="relative">
-      <div className="py-32 px-6 text-center">
+      {/* Pastel gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-40 -left-32 w-96 h-96 rounded-full bg-pastel-mint/20 blur-3xl" />
+        <div className="absolute top-1/4 -right-20 w-80 h-80 rounded-full bg-pastel-sky/20 blur-3xl" />
+        <div className="absolute top-1/2 left-1/3 w-72 h-72 rounded-full bg-pastel-lemon/15 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 rounded-full bg-pastel-lavender/15 blur-3xl" />
+        <div className="absolute bottom-40 -left-20 w-80 h-80 rounded-full bg-pastel-peach/15 blur-3xl" />
+      </div>
+      <div className="py-32 px-6 text-center relative z-10">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection One
