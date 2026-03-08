@@ -1,47 +1,41 @@
 import ScrollReveal from "./ScrollReveal";
 import LandscapeCountry from "./LandscapeCountry";
-import landscapeSwitzerland from "@/assets/landscape-switzerland.jpg";
-import landscapeJapan from "@/assets/landscape-japan.jpg";
-import landscapeIceland from "@/assets/landscape-iceland.jpg";
-import landscapeItaly from "@/assets/landscape-italy.jpg";
-import landscapeArgentina from "@/assets/landscape-argentina.jpg";
-import landscapeMorocco from "@/assets/landscape-morocco.jpg";
 
 const countries = [
   {
     country: "Switzerland",
     description: "Alpine peaks kissed by golden light, where pristine lakes mirror the heavens. Each frame captures the raw grandeur of nature's cathedral.",
-    image: landscapeSwitzerland,
-    color: "hsl(350 65% 70% / 0.15)",
+    image: "https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?w=1200&h=800&fit=crop",
+    color: "hsl(200 60% 78% / 0.15)",
   },
   {
     country: "Japan",
     description: "Cherry blossoms paint the world in soft pinks, while ancient temples whisper stories of centuries past. A land where nature and culture dance as one.",
-    image: landscapeJapan,
+    image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&h=800&fit=crop",
     color: "hsl(270 40% 78% / 0.15)",
   },
   {
     country: "Iceland",
     description: "Where fire meets ice — aurora borealis illuminating volcanic shores. A landscape so otherworldly it feels like stepping onto another planet.",
-    image: landscapeIceland,
+    image: "https://images.unsplash.com/photo-1504893524553-b855bce32c67?w=1200&h=800&fit=crop",
     color: "hsl(160 40% 75% / 0.15)",
   },
   {
     country: "Italy",
     description: "Sun-drenched coastlines adorned with pastel villages cascading toward turquoise waters. The Amalfi Coast in all its Mediterranean splendor.",
-    image: landscapeItaly,
+    image: "https://images.unsplash.com/photo-1534445867742-43195f401b6c?w=1200&h=800&fit=crop",
     color: "hsl(25 80% 82% / 0.15)",
   },
   {
     country: "Argentina",
     description: "The jagged spires of Patagonia rising through dramatic clouds, glacial lakes glowing turquoise against wild grasslands stretching to infinity.",
-    image: landscapeArgentina,
+    image: "https://images.unsplash.com/photo-1464817739973-0128fe77aed1?w=1200&h=800&fit=crop",
     color: "hsl(200 60% 78% / 0.15)",
   },
   {
     country: "Morocco",
     description: "Golden sand dunes rippling endlessly under a blazing sunset, camel caravans casting elongated shadows across the Sahara's timeless expanse.",
-    image: landscapeMorocco,
+    image: "https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?w=1200&h=800&fit=crop",
     color: "hsl(45 80% 80% / 0.15)",
   },
 ];

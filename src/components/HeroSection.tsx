@@ -25,9 +25,9 @@ const HeroSection = () => {
           Visual Storyteller
         </motion.p>
         <h1 className="section-title gradient-text mb-6">
-          Elena
+          David
           <br />
-          Vasquez
+          Zundel
         </h1>
         <motion.p
           initial={{ opacity: 0 }}
