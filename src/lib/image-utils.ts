@@ -5,12 +5,13 @@
 export const getPreviewUrl = (src: string, width = 600, quality = 60): string => {
   try {
     const url = new URL(src);
+    // Supabase storage URL pattern: /storage/v1/object/public/{bucket}/{path}
     if (url.pathname.includes("/storage/v1/object/public/")) {
-      const renderPath = url.pathname.replace(
-        "/storage/v1/object/public/",
-        "/storage/v1/render/image/public/"
-      );
-      return `${url.origin}${renderPath}?width=${width}&quality=${quality}`;
+      const pathParts = url.pathname.split("/storage/v1/object/public/");
+      if (pathParts.length === 2) {
+        const bucketAndPath = pathParts[1];
+        return `${url.origin}/storage/v1/render/image/public/${bucketAndPath}?width=${width}&quality=${quality}`;
+      }
     }
   } catch {}
   return src;
