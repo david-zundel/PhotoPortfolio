@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import Lightbox, { LightboxImage } from "@/components/Lightbox";
 import { supabase } from "@/integrations/supabase/client";
+import { getPreviewUrl } from "@/lib/image-utils";
 
 type FilterType = "all" | "landscapes" | "portraits";
 
