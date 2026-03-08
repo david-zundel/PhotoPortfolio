@@ -44,7 +44,7 @@ const Login = () => {
         </h1>
         <Input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
           {loading ? "Please wait..." : isSignUp ? "Sign Up" : "Sign In"}
         </Button>
         <p className="text-center text-sm text-muted-foreground">
