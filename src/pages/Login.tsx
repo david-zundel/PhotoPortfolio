@@ -49,7 +49,7 @@ const Login = () => {
         </Button>
         <p className="text-center text-sm text-muted-foreground">
           {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
-          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary underline">
+          <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-[hsl(210,50%,42%)] underline font-medium">
             {isSignUp ? "Sign in" : "Sign up"}
           </button>
         </p>
