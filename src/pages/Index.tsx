@@ -29,7 +29,7 @@ const Index = () => {
 
         {/* Transition — cool to warm lavender, rose */}
         <div className="absolute top-[210vh] left-[5vw] w-[500px] h-[500px] rounded-full bg-pastel-lavender/40 blur-3xl" />
-        <div className="absolute top-[230vh] right-[15vw] w-[450px] h-[450px] rounded-full" style={{ background: 'hsl(330 50% 72% / 0.35)' }} />
+        <div className="absolute top-[230vh] right-[15vw] w-[450px] h-[450px] rounded-full blur-3xl" style={{ background: 'hsl(330 50% 72% / 0.35)' }} />
 
         {/* Portraits area — warm pinks, lavender, rose gold */}
         <div className="absolute top-[250vh] left-[20vw] w-[550px] h-[550px] rounded-full" style={{ background: 'hsl(350 55% 75% / 0.38)' }} />
