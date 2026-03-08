@@ -122,7 +122,7 @@
   }
 
   .nav-pill.active {
-    background: hsl(var(--pastel-coral));
+    background: hsl(210 50% 42%);
     color: hsl(var(--primary-foreground));
   }
 
