@@ -31,7 +31,7 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
               style={{ background: color }}
             />
             <ProgressiveImage
-              src={image}
+              src={getPreviewUrl(image, 1200, 75)}
               alt={`Landscape of ${country}`}
               className="relative w-full aspect-[4/3] object-cover rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
               fetchPriority="high"
