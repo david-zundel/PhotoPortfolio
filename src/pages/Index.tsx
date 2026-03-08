@@ -12,7 +12,7 @@ const Index = () => {
         {/* Hero area — warm coral, rose, peach */}
         <div className="absolute -top-40 -left-40 w-[550px] h-[550px] rounded-full bg-pastel-coral/35 blur-3xl" />
         <div className="absolute top-[5vh] right-[-8vw] w-[500px] h-[500px] rounded-full bg-pastel-peach/40 blur-3xl" />
-        <div className="absolute top-[20vh] left-[25vw] w-[400px] h-[400px] rounded-full" style={{ background: 'hsl(340 55% 75% / 0.35)' }} />
+        <div className="absolute top-[20vh] left-[25vw] w-[400px] h-[400px] rounded-full blur-3xl" style={{ background: 'hsl(340 55% 75% / 0.35)' }} />
 
         {/* Transition — peach to gold to lemon */}
         <div className="absolute top-[40vh] right-[10vw] w-[500px] h-[500px] rounded-full bg-pastel-lemon/38 blur-3xl" />
