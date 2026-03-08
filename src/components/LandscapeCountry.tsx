@@ -1,5 +1,6 @@
 import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
+import ProgressiveImage from "./ProgressiveImage";
 import { LightboxImage } from "./Lightbox";
 
 interface LandscapeCountryProps {
@@ -28,16 +29,12 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
               className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
               style={{ background: color }}
             />
-            <img
+            <ProgressiveImage
               src={image}
               alt={`Landscape of ${country}`}
-              className={`relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl transition-opacity duration-500 ease-out group-hover:scale-[1.02] group-hover:transition-transform group-hover:duration-700 ${
-                loaded ? "opacity-100" : "opacity-0"
-              }`}
-              style={{ willChange: "opacity" }}
+              className="relative w-full aspect-[3/2] object-cover rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
               fetchPriority="high"
-              decoding="async"
-              onLoad={() => setLoaded(true)}
+              onFullLoad={() => setLoaded(true)}
             />
           </div>
         </ScrollReveal>
