@@ -27,6 +27,7 @@ const DraggableCrop = ({
   const [cropX, setCropX] = useState(initialX);
   const [cropY, setCropY] = useState(initialY);
   const [editing, setEditing] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; cx: number; cy: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
