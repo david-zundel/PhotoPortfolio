@@ -1,8 +1,11 @@
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import LandscapesSection from "@/components/LandscapesSection";
 import PortraitsSection from "@/components/PortraitsSection";
 import ContactSection from "@/components/ContactSection";
+import ScrollReveal from "@/components/ScrollReveal";
 
 const Index = () => {
   return (
