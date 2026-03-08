@@ -1,3 +1,4 @@
+import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
 import { LightboxImage } from "./Lightbox";
 
