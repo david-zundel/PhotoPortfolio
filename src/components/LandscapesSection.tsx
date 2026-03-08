@@ -14,7 +14,7 @@ const countries = [
     description: "Cherry blossoms paint the world in soft pinks, while ancient temples whisper stories of centuries past. A land where nature and culture dance as one.",
     image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&h=800&fit=crop",
     color: "hsl(270 40% 78% / 0.15)",
-    textColor: "hsl(270 40% 40%)",
+    textGradient: "linear-gradient(135deg, hsl(270 42% 52%), hsl(290 38% 55%))",
   },
   {
     country: "Iceland",
