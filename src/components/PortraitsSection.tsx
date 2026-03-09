@@ -3,6 +3,7 @@ import ScrollReveal from "./ScrollReveal";
 import Lightbox, { LightboxImage } from "./Lightbox";
 import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
+import { getPreviewUrl } from "@/lib/image-utils";
 
 type PortraitData = {
   id: string;
@@ -52,10 +53,10 @@ const PortraitsSection = () => {
             cropY: p.crop_y ?? 50,
           }))
         );
-        // Preload all portrait images immediately
+        // Preload the actual rendered URLs
         data.forEach((p: any) => {
           const img = new Image();
-          img.src = p.src;
+          img.src = getPreviewUrl(p.src, 1200, 75);
         });
       }
     };
