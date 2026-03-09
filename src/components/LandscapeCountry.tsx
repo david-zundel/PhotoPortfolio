@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import ScrollReveal from "./ScrollReveal";
 import { LightboxImage } from "./Lightbox";
 
@@ -13,44 +14,73 @@ interface LandscapeCountryProps {
 
 const LandscapeCountry = ({ country, description, image, index, color, textGradient, onImageClick }: LandscapeCountryProps) => {
   const isEven = index % 2 === 0;
+  const [isPanorama, setIsPanorama] = useState(false);
+
+  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    // Consider panorama if aspect ratio is wider than ~2.5:1
+    if (img.naturalWidth / img.naturalHeight >= 2.5) {
+      setIsPanorama(true);
+    }
+  }, []);
+
+  const imageBlock = (
+    <ScrollReveal className={isPanorama ? "w-full" : "flex-1"} direction={isEven ? "left" : "right"} delay={0.1}>
+      <div
+        className="relative group cursor-pointer rounded-2xl overflow-hidden bg-muted"
+        onClick={() => onImageClick([{ src: image, alt: `Landscape of ${country}`, location: country }], 0)}
+      >
+        <div
+          className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
+          style={{ background: color }}
+        />
+        <img
+          src={image}
+          alt={`Landscape of ${country}`}
+          className="block w-full rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          onLoad={handleLoad}
+        />
+      </div>
+    </ScrollReveal>
+  );
+
+  const textBlock = (
+    <ScrollReveal className={isPanorama ? "w-full text-center" : "flex-1 max-w-lg"} direction={isEven ? "right" : "left"} delay={0.3}>
+      <h3
+        className="text-2xl md:text-3xl font-semibold font-display mt-4 mb-4 bg-clip-text text-transparent inline-block"
+        style={{
+          backgroundImage: textGradient,
+          paddingBottom: '0.1em',
+        }}
+      >
+        {country}
+      </h3>
+      <p className="text-base text-muted-foreground font-body font-light leading-relaxed">
+        {description}
+      </p>
+    </ScrollReveal>
+  );
+
+  // Panoramas: stack vertically (text below image). Regular: side-by-side.
+  if (isPanorama) {
+    return (
+      <div className="py-10 md:py-20 px-6 md:px-12 lg:px-24">
+        <div className="flex flex-col gap-6 items-center w-full max-w-7xl mx-auto">
+          {imageBlock}
+          {textBlock}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-0 lg:min-h-screen flex items-center py-10 md:py-20 px-6 md:px-12 lg:px-24">
       <div className={`flex flex-col ${isEven ? "lg:flex-row" : "lg:flex-row-reverse"} gap-6 md:gap-12 lg:gap-20 items-center w-full max-w-7xl mx-auto`}>
-        <ScrollReveal className="flex-1" direction={isEven ? "left" : "right"} delay={0.1}>
-          <div
-            className="relative group cursor-pointer rounded-2xl overflow-hidden bg-muted"
-            onClick={() => onImageClick([{ src: image, alt: `Landscape of ${country}`, location: country }], 0)}
-          >
-            <div
-              className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
-              style={{ background: color }}
-            />
-            <img
-              src={image}
-              alt={`Landscape of ${country}`}
-              className="block rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
-              fetchPriority="high"
-              loading="eager"
-              decoding="async"
-            />
-          </div>
-        </ScrollReveal>
-
-        <ScrollReveal className="flex-1 max-w-lg" direction={isEven ? "right" : "left"} delay={0.3}>
-          <h3
-            className="text-2xl md:text-3xl font-semibold font-display mt-4 mb-4 bg-clip-text text-transparent inline-block"
-            style={{
-              backgroundImage: textGradient,
-              paddingBottom: '0.1em',
-            }}
-          >
-            {country}
-          </h3>
-          <p className="text-base text-muted-foreground font-body font-light leading-relaxed">
-            {description}
-          </p>
-        </ScrollReveal>
+        {imageBlock}
+        {textBlock}
       </div>
     </div>
   );
