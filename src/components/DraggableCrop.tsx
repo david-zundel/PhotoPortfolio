@@ -2,7 +2,6 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Move, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import ProgressiveImage from "./ProgressiveImage";
 
 interface DraggableCropProps {
   src: string;
@@ -28,7 +27,6 @@ const DraggableCrop = ({
   const [cropX, setCropX] = useState(initialX);
   const [cropY, setCropY] = useState(initialY);
   const [editing, setEditing] = useState(false);
-  const [loaded, setLoaded] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number; cx: number; cy: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -84,25 +82,20 @@ const DraggableCrop = ({
   };
 
   const imgStyle = useMemo(() => ({ objectPosition: `${cropX}% ${cropY}%` }), [cropX, cropY]);
-  const imgClassName = `${
-    editing ? "cursor-grab active:cursor-grabbing" : ""
-  } ${!editing ? "group-hover:scale-105 transition-transform duration-700" : ""}`;
-  const handleFullLoad = useCallback(() => setLoaded(true), []);
 
   return (
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
-      <ProgressiveImage
+      <img
         src={src}
-        mode="cover"
-        containerClassName="absolute inset-0"
-        previewWidth={1200}
-        previewQuality={75}
-        imgClassName={imgClassName}
+        alt=""
+        className={`absolute inset-0 w-full h-full object-cover ${
+          editing ? "cursor-grab active:cursor-grabbing" : "group-hover:scale-105 transition-transform duration-700"
+        }`}
         style={imgStyle}
         fetchPriority="high"
         loading="eager"
+        decoding="async"
         draggable={false}
-        onFullLoad={handleFullLoad}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
