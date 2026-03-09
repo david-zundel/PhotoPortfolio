@@ -1,6 +1,4 @@
-import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
-import ProgressiveImage from "./ProgressiveImage";
 import { LightboxImage } from "./Lightbox";
 
 interface LandscapeCountryProps {
@@ -14,7 +12,6 @@ interface LandscapeCountryProps {
 }
 
 const LandscapeCountry = ({ country, description, image, index, color, textGradient, onImageClick }: LandscapeCountryProps) => {
-  const [loaded, setLoaded] = useState(false);
   const isEven = index % 2 === 0;
 
   return (
@@ -29,17 +26,13 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
               className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
               style={{ background: color }}
             />
-            <ProgressiveImage
+            <img
               src={image}
               alt={`Landscape of ${country}`}
-              mode="intrinsic"
-              containerClassName="relative w-full"
-              imgClassName="rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
+              className="block rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
               fetchPriority="high"
               loading="eager"
-              previewWidth={3840}
-              previewQuality={80}
-              onFullLoad={() => setLoaded(true)}
+              decoding="async"
             />
           </div>
         </ScrollReveal>
