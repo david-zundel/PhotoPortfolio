@@ -45,8 +45,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="watercolor-wash" />
-        <div className="watercolor-grain" />
         {ORBS.map((orb, index) => (
           <div
             key={index}
