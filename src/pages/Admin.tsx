@@ -243,9 +243,11 @@ const Admin = () => {
           {photos.map((photo) => (
             <div key={photo.id} className="group relative rounded-xl overflow-hidden border border-border">
               <img 
-                src={getPreviewUrl(photo.src, 400, 60)} 
+                src={getPreviewUrl(photo.src, 300, 50)} 
                 alt={photo.alt || ""} 
                 className="w-full aspect-square object-cover"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
                   e.currentTarget.src = photo.src;
                 }}
