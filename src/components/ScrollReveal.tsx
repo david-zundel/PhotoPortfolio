@@ -16,25 +16,27 @@ const directionMap = {
 };
 
 const ScrollReveal = ({ children, className = "", delay = 0, direction = "up" }: ScrollRevealProps) => {
-  const ref = useRef(null);
+  // Keep the ref on a plain DOM node to avoid ref warnings with motion components.
+  const ref = useRef<HTMLDivElement | null>(null);
   const isInView = useInView(ref, { once: true, margin: "-50px" });
   const offset = directionMap[direction];
 
   return (
-    <motion.div
-      ref={ref}
-      className={className}
-      style={{ willChange: "opacity, transform" }}
-      initial={{ opacity: 0, ...offset }}
-      animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
-      transition={{
-        duration: 0.6,
-        delay,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
-    >
-      {children}
-    </motion.div>
+    <div ref={ref} className={className}>
+      <motion.div
+        className="h-full w-full"
+        style={{ willChange: "opacity, transform" }}
+        initial={{ opacity: 0, ...offset }}
+        animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
+        transition={{
+          duration: 0.6,
+          delay,
+          ease: [0.25, 0.46, 0.45, 0.94],
+        }}
+      >
+        {children}
+      </motion.div>
+    </div>
   );
 };
 

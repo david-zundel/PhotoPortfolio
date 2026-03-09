@@ -84,7 +84,7 @@ const DraggableCrop = ({
   };
 
   const imgStyle = useMemo(() => ({ objectPosition: `${cropX}% ${cropY}%` }), [cropX, cropY]);
-  const imgClassName = `absolute inset-0 w-full h-full object-cover ${
+  const imgClassName = `${
     editing ? "cursor-grab active:cursor-grabbing" : ""
   } ${!editing ? "group-hover:scale-105 transition-transform duration-700" : ""}`;
   const handleFullLoad = useCallback(() => setLoaded(true), []);
@@ -93,11 +93,14 @@ const DraggableCrop = ({
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
       <ProgressiveImage
         src={src}
+        mode="cover"
+        containerClassName="absolute inset-0"
         previewWidth={3840}
         previewQuality={80}
-        className={imgClassName}
+        imgClassName={imgClassName}
         style={imgStyle}
         fetchPriority="high"
+        loading="eager"
         draggable={false}
         onFullLoad={handleFullLoad}
         onPointerDown={handlePointerDown}
