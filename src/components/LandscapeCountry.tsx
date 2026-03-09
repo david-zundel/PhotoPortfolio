@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
+import ProgressiveImage from "./ProgressiveImage";
 import { LightboxImage } from "./Lightbox";
 
 interface LandscapeCountryProps {
@@ -16,13 +17,14 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
   const isEven = index % 2 === 0;
   const [isPanorama, setIsPanorama] = useState(false);
 
-  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    // Consider panorama if aspect ratio is wider than ~2.5:1
-    if (img.naturalWidth / img.naturalHeight >= 2.5) {
-      setIsPanorama(true);
-    }
-  }, []);
+  // Detect panorama aspect ratio by loading the image in JS
+  useState(() => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth / img.naturalHeight >= 2.5) setIsPanorama(true);
+    };
+    img.src = image;
+  });
 
   const imageBlock = (
     <ScrollReveal className={isPanorama ? "w-full" : "flex-1"} direction={isEven ? "left" : "right"} delay={0.1}>
@@ -34,14 +36,15 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
           className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
           style={{ background: color }}
         />
-        <img
+        <ProgressiveImage
           src={image}
           alt={`Landscape of ${country}`}
           className="block w-full rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
           fetchPriority="high"
           loading="eager"
-          decoding="async"
-          onLoad={handleLoad}
+          previewWidth={1200}
+          previewQuality={70}
+          
         />
       </div>
     </ScrollReveal>
