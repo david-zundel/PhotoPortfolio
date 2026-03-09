@@ -42,8 +42,8 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
           className="block w-full rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
           fetchPriority="high"
           loading="eager"
-          previewWidth={1200}
-          previewQuality={70}
+          previewWidth={1920}
+          previewQuality={85}
           
         />
       </div>
