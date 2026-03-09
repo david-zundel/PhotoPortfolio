@@ -46,7 +46,7 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
           loading="eager"
           previewWidth={1200}
           previewQuality={70}
-          onFullLoad={handleLoad}
+          onFullLoad={handleFullLoad}
         />
       </div>
     </ScrollReveal>
