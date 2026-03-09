@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { getPreviewUrl } from "@/lib/image-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -243,9 +242,9 @@ const Admin = () => {
           {photos.map((photo) => (
             <div key={photo.id} className="group relative rounded-xl overflow-hidden border border-border">
               <img 
-                src={getPreviewUrl(photo.src, 300, 50)} 
+                src={photo.src}
                 alt={photo.alt || ""} 
-                className="w-full h-auto max-h-48 object-contain bg-muted"
+                className="block max-w-full max-h-48 w-auto h-auto mx-auto bg-muted"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {
