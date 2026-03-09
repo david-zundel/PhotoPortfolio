@@ -97,15 +97,12 @@ const Gallery = () => {
                 className="mb-4 break-inside-avoid group cursor-pointer"
                 onClick={() => handlePhotoClick(i)}
               >
-                <div className="relative overflow-hidden rounded-xl">
-                  <ProgressiveImage
+                <div className="relative rounded-xl overflow-hidden">
+                  <img
                     src={photo.src}
                     alt={photo.alt || ""}
-                    imgClassName="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
-                    previewWidth={1920}
-                    previewQuality={70}
-                    fetchPriority="low"
-                    loading="eager"
+                    className="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
                     draggable={false}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
