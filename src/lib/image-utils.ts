@@ -10,7 +10,7 @@ export const getPreviewUrl = (src: string, width = 600, quality = 60): string =>
       const pathParts = url.pathname.split("/storage/v1/object/public/");
       if (pathParts.length === 2) {
         const bucketAndPath = pathParts[1];
-        return `${url.origin}/storage/v1/render/image/public/${bucketAndPath}?width=${width}&quality=${quality}&resize=contain`;
+        return `${url.origin}/storage/v1/render/image/public/${bucketAndPath}?width=${width}&quality=${quality}`;
       }
     }
   } catch {}
