@@ -49,6 +49,11 @@ const LandscapesSection = () => {
             textGradient: p.text_gradient || TEXT_GRADIENTS[index % TEXT_GRADIENTS.length],
           }))
         );
+        // Preload all images immediately so they're ready when scrolled into view
+        data.forEach((p: any) => {
+          const img = new Image();
+          img.src = p.src;
+        });
       }
     };
     fetchData();
