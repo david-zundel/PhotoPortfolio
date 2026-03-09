@@ -54,10 +54,12 @@ const PortraitsSection = () => {
             cropY: p.crop_y ?? 50,
           }))
         );
-        // Preload the actual rendered URLs
+        // Preload the actual rendered URLs and pre-populate ProgressiveImage cache
         data.forEach((p: any) => {
+          const url = getPreviewUrl(p.src, 1200, 75);
           const img = new Image();
-          img.src = getPreviewUrl(p.src, 1200, 75);
+          img.onload = () => loadedCache.add(p.src);
+          img.src = url;
         });
       }
     };

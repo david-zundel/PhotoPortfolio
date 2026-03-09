@@ -22,6 +22,10 @@ const ORBS: OrbConfig[] = [
   { cls: "absolute top-[120vh] left-[-5vw] w-[32vw] h-[32vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full blur-[60px]", style: { background: "hsl(15 70% 75% / 0.25)" } },
   { cls: "absolute top-[180vh] left-[15vw] w-[38vw] h-[38vw] max-w-[600px] max-h-[600px] min-w-[240px] min-h-[240px] rounded-full bg-pastel-mint/30 blur-[60px]" },
   { cls: "absolute top-[250vh] right-[-5vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-sky/28 blur-[60px]" },
+  // Portrait section orbs
+  { cls: "absolute top-[300vh] left-[5vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-lavender/30 blur-[60px]" },
+  { cls: "absolute top-[340vh] right-[-3vw] w-[32vw] h-[32vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full blur-[60px]", style: { background: "hsl(330 50% 75% / 0.25)" } },
+  { cls: "absolute top-[380vh] left-[20vw] w-[38vw] h-[38vw] max-w-[600px] max-h-[600px] min-w-[240px] min-h-[240px] rounded-full bg-pastel-peach/28 blur-[60px]" },
   { cls: "absolute top-[330vh] left-[-8vw] w-[32vw] h-[32vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full blur-[60px]", style: { background: "hsl(140 40% 72% / 0.25)" } },
   { cls: "absolute top-[410vh] right-[20vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-lemon/25 blur-[60px]" },
   { cls: "absolute top-[500vh] left-[30vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-sky/25 blur-[60px]" },

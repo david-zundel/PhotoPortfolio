@@ -41,7 +41,7 @@ interface ProgressiveImageProps {
 }
 
 // Global cache so images that have loaded once never re-trigger transitions
-const loadedCache = new Set<string>();
+export const loadedCache = new Set<string>();
 
 const ProgressiveImage = memo(({
   src,
