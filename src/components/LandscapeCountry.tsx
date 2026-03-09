@@ -35,14 +35,15 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
           className="absolute -inset-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 blur-2xl"
           style={{ background: color }}
         />
-        <img
+        <ProgressiveImage
           src={image}
           alt={`Landscape of ${country}`}
           className="block w-full rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
           fetchPriority="high"
           loading="eager"
-          decoding="async"
-          onLoad={handleLoad}
+          previewWidth={1200}
+          previewQuality={70}
+          onFullLoad={handleLoad}
         />
       </div>
     </ScrollReveal>
