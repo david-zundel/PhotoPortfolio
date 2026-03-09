@@ -3,6 +3,7 @@ import ScrollReveal from "./ScrollReveal";
 import Lightbox, { LightboxImage } from "./Lightbox";
 import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
+import { getPreviewUrl } from "@/lib/image-utils";
 
 type PortraitData = {
   id: string;
