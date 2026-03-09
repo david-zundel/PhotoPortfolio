@@ -245,7 +245,7 @@ const Admin = () => {
               <img 
                 src={getPreviewUrl(photo.src, 300, 50)} 
                 alt={photo.alt || ""} 
-                className="w-full aspect-square object-cover"
+                className="w-full aspect-video object-cover"
                 loading="lazy"
                 decoding="async"
                 onError={(e) => {
