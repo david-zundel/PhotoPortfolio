@@ -104,8 +104,8 @@ const Gallery = () => {
                     className="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     draggable={false}
-                    previewWidth={800}
-                    previewQuality={60}
+                    previewWidth={1200}
+                    previewQuality={75}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none" />
                   {photo.location && (
