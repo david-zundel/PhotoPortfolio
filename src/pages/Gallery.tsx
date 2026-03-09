@@ -99,7 +99,7 @@ const Gallery = () => {
               >
                 <div className="relative rounded-xl overflow-hidden">
                   <img
-                    src={getPreviewUrl(photo.src, 800, 70)}
+                    src={photo.src}
                     alt={photo.alt || ""}
                     className="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
