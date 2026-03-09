@@ -1,15 +1,39 @@
 import { useState, useEffect, memo, useCallback } from "react";
 import { getPreviewUrl, getThumbUrl } from "@/lib/image-utils";
 
+export type ProgressiveImageMode = "intrinsic" | "cover";
+
 interface ProgressiveImageProps {
   src: string;
   alt?: string;
+
+  /**
+   * Wrapper element class.
+   * - Use this when you need a fixed aspect ratio container.
+   */
+  containerClassName?: string;
+
+  /**
+   * Image element class (applied to both thumb + full image).
+   * Prefer this over `className`.
+   */
+  imgClassName?: string;
+
+  /** Backward-compatible alias for imgClassName */
   className?: string;
+
+  /** Inline styles applied to the image element(s) */
   style?: React.CSSProperties;
+
+  /** How to size/position the image */
+  mode?: ProgressiveImageMode;
+
   fetchPriority?: "high" | "low" | "auto";
+  loading?: "eager" | "lazy";
   draggable?: boolean;
   previewWidth?: number;
   previewQuality?: number;
+
   onPointerDown?: (e: React.PointerEvent) => void;
   onPointerMove?: (e: React.PointerEvent) => void;
   onPointerUp?: (e: React.PointerEvent) => void;
@@ -22,9 +46,13 @@ const loadedCache = new Set<string>();
 const ProgressiveImage = memo(({
   src,
   alt = "",
-  className = "",
+  containerClassName = "",
+  imgClassName,
+  className,
   style,
+  mode = "intrinsic",
   fetchPriority,
+  loading = "eager",
   draggable,
   previewWidth = 1920,
   previewQuality = 75,
@@ -36,16 +64,14 @@ const ProgressiveImage = memo(({
   const alreadyCached = loadedCache.has(src);
   const [fullLoaded, setFullLoaded] = useState(alreadyCached);
   const [useFallback, setUseFallback] = useState(false);
-  
+
   // Try preview URL first, fall back to original if it fails
   const previewSrc = getPreviewUrl(src, previewWidth, previewQuality);
   const displaySrc = useFallback ? src : previewSrc;
   const thumbSrc = getThumbUrl(src);
 
   useEffect(() => {
-    if (loadedCache.has(src)) {
-      setFullLoaded(true);
-    }
+    if (loadedCache.has(src)) setFullLoaded(true);
   }, [src]);
 
   const handleLoad = useCallback(() => {
@@ -55,11 +81,15 @@ const ProgressiveImage = memo(({
   }, [src, onFullLoad]);
 
   const handleError = useCallback(() => {
-    if (!useFallback) {
-      // Preview URL failed, try original
-      setUseFallback(true);
-    }
+    if (!useFallback) setUseFallback(true);
   }, [useFallback]);
+
+  const imgBaseClass =
+    mode === "cover"
+      ? "absolute inset-0 w-full h-full object-cover"
+      : "w-full h-auto block";
+
+  const mergedImgClass = `${imgBaseClass} ${imgClassName ?? className ?? ""}`.trim();
 
   // Already cached — render single static image, no transitions
   if (alreadyCached) {
@@ -68,8 +98,11 @@ const ProgressiveImage = memo(({
         src={displaySrc}
         alt={alt}
         title=""
-        className={className}
+        className={mergedImgClass}
         style={style}
+        fetchPriority={fetchPriority}
+        loading={loading}
+        decoding="async"
         draggable={draggable}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -79,15 +112,31 @@ const ProgressiveImage = memo(({
     );
   }
 
+  const containerStyle: React.CSSProperties =
+    mode === "intrinsic" ? { display: "grid" } : {};
+
+  // Overlap thumb + full image so we never stack two images vertically.
+  // - intrinsic: use CSS grid overlap
+  // - cover: images are absolutely positioned, but grid overlap is harmless
+  const overlapStyle: React.CSSProperties =
+    mode === "intrinsic" ? { gridArea: "1 / 1" } : {};
+
   return (
-    <>
+    <div className={containerClassName} style={containerStyle}>
       {!fullLoaded && (
         <img
           src={thumbSrc}
           alt=""
           aria-hidden
-          className={className}
-          style={{ ...style, filter: "blur(20px)", transform: "scale(1.1)", zIndex: 1 }}
+          className={mergedImgClass}
+          style={{
+            ...style,
+            ...overlapStyle,
+            filter: "blur(20px)",
+            transform: "scale(1.06)",
+            zIndex: 1,
+          }}
+          loading="eager"
           draggable={false}
           onError={() => {
             // If thumb fails, just let it be transparent
@@ -98,11 +147,18 @@ const ProgressiveImage = memo(({
         src={displaySrc}
         alt={alt}
         title=""
-        className={`${className} transition-opacity duration-500 ${
+        className={`${mergedImgClass} transition-opacity duration-500 ${
           fullLoaded ? "opacity-100" : "opacity-0"
         }`}
-        style={{ ...style, zIndex: 2 }}
+        style={{
+          ...style,
+          ...overlapStyle,
+          zIndex: 2,
+          // Avoid the invisible full image blocking interactions before it's ready.
+          pointerEvents: fullLoaded ? "auto" : "none",
+        }}
         fetchPriority={fetchPriority}
+        loading={loading}
         decoding="async"
         draggable={draggable}
         onLoad={handleLoad}
@@ -111,7 +167,7 @@ const ProgressiveImage = memo(({
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
       />
-    </>
+    </div>
   );
 });
 

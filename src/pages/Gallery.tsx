@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import Lightbox, { LightboxImage } from "@/components/Lightbox";
+import ProgressiveImage from "@/components/ProgressiveImage";
 import { supabase } from "@/integrations/supabase/client";
-import { getPreviewUrl } from "@/lib/image-utils";
 
 type FilterType = "all" | "landscapes" | "portraits";
 
@@ -22,19 +22,21 @@ const Gallery = () => {
         .order("sort_order")
         .order("created_at", { ascending: false });
       if (data && data.length > 0) {
-        setPhotos(data.map((p: any) => ({
-          src: p.src,
-          alt: p.alt || undefined,
-          location: p.location || undefined,
-          _category: p.category,
-        })));
+        setPhotos(
+          data.map((p: any) => ({
+            src: p.src,
+            alt: p.alt || undefined,
+            location: p.location || undefined,
+            _category: p.category,
+          }))
+        );
       }
     };
     fetchPhotos();
   }, []);
 
-  const landscapes = photos.filter((p: any) => p._category ? p._category === "landscape" : !!p.location);
-  const portraits = photos.filter((p: any) => p._category ? p._category === "portrait" : !p.location);
+  const landscapes = photos.filter((p: any) => (p._category ? p._category === "landscape" : !!p.location));
+  const portraits = photos.filter((p: any) => (p._category ? p._category === "portrait" : !p.location));
   const filtered = filter === "all" ? photos : filter === "landscapes" ? landscapes : portraits;
 
   const handlePhotoClick = (index: number) => {
@@ -53,11 +55,18 @@ const Gallery = () => {
       <div className="relative z-10">
         <div className="pt-12 pb-8 px-6">
           <div className="max-w-7xl mx-auto">
-            <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-body mb-8">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors font-body mb-8"
+            >
               <ArrowLeft size={18} />
               <span className="text-sm">Back to Home</span>
             </Link>
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+            >
               <h1 className="section-title gradient-text mb-4">Gallery</h1>
               <p className="text-lg text-muted-foreground font-body font-light max-w-md">
                 The complete collection — click any photo for details.
@@ -69,7 +78,11 @@ const Gallery = () => {
         <div className="px-6 pb-12">
           <div className="max-w-7xl mx-auto flex gap-2">
             {(["all", "landscapes", "portraits"] as FilterType[]).map((f) => (
-              <button key={f} onClick={() => setFilter(f)} className={`nav-pill capitalize ${filter === f ? "active" : ""}`}>
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`nav-pill capitalize ${filter === f ? "active" : ""}`}
+              >
                 {f}
               </button>
             ))}
@@ -78,25 +91,22 @@ const Gallery = () => {
 
         <div className="px-6 pb-24">
           <div className="max-w-7xl mx-auto columns-1 sm:columns-2 gap-6">
-            {filtered.map((photo, i) => (
-              <motion.div
-                key={photo.src}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
+            {filtered.map((photo: any, i) => (
+              <div
+                key={`${photo.src}-${i}`}
                 className="mb-4 break-inside-avoid group cursor-pointer"
                 onClick={() => handlePhotoClick(i)}
               >
                 <div className="relative overflow-hidden rounded-xl">
-                  <img 
-                    src={getPreviewUrl(photo.src, 1920, 70)} 
-                    alt={photo.alt || ""} 
-                    className="w-full transition-transform duration-500 group-hover:scale-105" 
-                    loading="lazy"
-                    onError={(e) => {
-                      // Fallback to original if transform fails
-                      e.currentTarget.src = photo.src;
-                    }}
+                  <ProgressiveImage
+                    src={photo.src}
+                    alt={photo.alt || ""}
+                    imgClassName="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
+                    previewWidth={1920}
+                    previewQuality={70}
+                    fetchPriority="low"
+                    loading="eager"
+                    draggable={false}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400" />
                   {photo.location && (
@@ -105,13 +115,18 @@ const Gallery = () => {
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
-      <Lightbox images={filtered} initialIndex={lightboxIndex} isOpen={lightboxOpen} onClose={() => setLightboxOpen(false)} />
+      <Lightbox
+        images={filtered}
+        initialIndex={lightboxIndex}
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+      />
     </div>
   );
 };
