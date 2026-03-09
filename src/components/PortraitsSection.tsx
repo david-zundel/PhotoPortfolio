@@ -4,6 +4,7 @@ import Lightbox, { LightboxImage } from "./Lightbox";
 import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
 import { getPreviewUrl } from "@/lib/image-utils";
+import { loadedCache } from "./ProgressiveImage";
 
 type PortraitData = {
   id: string;
@@ -53,10 +54,12 @@ const PortraitsSection = () => {
             cropY: p.crop_y ?? 50,
           }))
         );
-        // Preload the actual rendered URLs
+        // Preload the actual rendered URLs and pre-populate ProgressiveImage cache
         data.forEach((p: any) => {
+          const url = getPreviewUrl(p.src, 1200, 75);
           const img = new Image();
-          img.src = getPreviewUrl(p.src, 1200, 75);
+          img.onload = () => loadedCache.add(p.src);
+          img.src = url;
         });
       }
     };
