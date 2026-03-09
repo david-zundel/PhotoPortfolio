@@ -4,6 +4,7 @@ import Lightbox, { LightboxImage } from "./Lightbox";
 import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
 import { getPreviewUrl } from "@/lib/image-utils";
+import { loadedCache } from "./ProgressiveImage";
 
 type PortraitData = {
   id: string;
