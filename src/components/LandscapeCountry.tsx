@@ -17,11 +17,14 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
   const isEven = index % 2 === 0;
   const [isPanorama, setIsPanorama] = useState(false);
 
-  const handleLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    // Consider panorama if aspect ratio is wider than ~2.5:1
-    if (img.naturalWidth / img.naturalHeight >= 2.5) {
-      setIsPanorama(true);
+  const handleFullLoad = useCallback(() => {
+    // We'll detect panorama via a separate check after mount
+  }, []);
+
+  // Detect panorama aspect ratio from the full image
+  const imgRef = useCallback((el: HTMLImageElement | null) => {
+    if (el && el.naturalWidth && el.naturalHeight) {
+      if (el.naturalWidth / el.naturalHeight >= 2.5) setIsPanorama(true);
     }
   }, []);
 
