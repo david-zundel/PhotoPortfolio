@@ -32,8 +32,8 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
             <ProgressiveImage
               src={image}
               alt={`Landscape of ${country}`}
-              mode="intrinsic"
-              containerClassName="relative w-full"
+              mode="cover"
+              containerClassName="relative w-full aspect-[16/9] overflow-hidden"
               imgClassName="rounded-2xl shadow-2xl group-hover:scale-[1.02] transition-transform duration-700"
               fetchPriority="high"
               loading="eager"
