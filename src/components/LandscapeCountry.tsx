@@ -17,16 +17,14 @@ const LandscapeCountry = ({ country, description, image, index, color, textGradi
   const isEven = index % 2 === 0;
   const [isPanorama, setIsPanorama] = useState(false);
 
-  const handleFullLoad = useCallback(() => {
-    // We'll detect panorama via a separate check after mount
-  }, []);
-
-  // Detect panorama aspect ratio from the full image
-  const imgRef = useCallback((el: HTMLImageElement | null) => {
-    if (el && el.naturalWidth && el.naturalHeight) {
-      if (el.naturalWidth / el.naturalHeight >= 2.5) setIsPanorama(true);
-    }
-  }, []);
+  // Detect panorama aspect ratio by loading the image in JS
+  useState(() => {
+    const img = new Image();
+    img.onload = () => {
+      if (img.naturalWidth / img.naturalHeight >= 2.5) setIsPanorama(true);
+    };
+    img.src = image;
+  });
 
   const imageBlock = (
     <ScrollReveal className={isPanorama ? "w-full" : "flex-1"} direction={isEven ? "left" : "right"} delay={0.1}>
