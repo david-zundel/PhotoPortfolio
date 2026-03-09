@@ -93,6 +93,28 @@ const ProgressiveImage = memo(({
 
   // Already cached — render single static image, no transitions
   if (alreadyCached) {
+    // For cover mode, still need the container for positioning
+    if (mode === "cover") {
+      return (
+        <div className={containerClassName}>
+          <img
+            src={displaySrc}
+            alt={alt}
+            title=""
+            className={mergedImgClass}
+            style={style}
+            fetchPriority={fetchPriority}
+            loading={loading}
+            decoding="async"
+            draggable={draggable}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onError={handleError}
+          />
+        </div>
+      );
+    }
     return (
       <img
         src={displaySrc}
