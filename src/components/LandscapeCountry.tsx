@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import ScrollReveal from "./ScrollReveal";
 import ProgressiveImage from "./ProgressiveImage";
 import { LightboxImage } from "./Lightbox";
