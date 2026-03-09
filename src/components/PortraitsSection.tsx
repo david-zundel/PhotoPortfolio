@@ -52,6 +52,11 @@ const PortraitsSection = () => {
             cropY: p.crop_y ?? 50,
           }))
         );
+        // Preload all portrait images immediately
+        data.forEach((p: any) => {
+          const img = new Image();
+          img.src = p.src;
+        });
       }
     };
     fetchData();
