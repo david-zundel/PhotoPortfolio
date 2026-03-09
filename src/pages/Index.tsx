@@ -34,6 +34,11 @@ const ORBS: OrbConfig[] = [
   { cls: "absolute top-[770vh] right-[15vw] w-[32vw] h-[32vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full bg-pastel-peach/28 blur-[60px]" },
   { cls: "absolute top-[860vh] left-[10vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-coral/25 blur-[60px]" },
   { cls: "absolute top-[950vh] right-[10vw] w-[38vw] h-[38vw] max-w-[600px] max-h-[600px] min-w-[240px] min-h-[240px] rounded-full bg-pastel-lavender/28 blur-[60px]" },
+  // Contact section orbs
+  { cls: "absolute top-[1050vh] left-[-5vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-peach/30 blur-[60px]" },
+  { cls: "absolute top-[1100vh] right-[5vw] w-[32vw] h-[32vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full blur-[60px]", style: { background: "hsl(25 60% 75% / 0.25)" } },
+  { cls: "absolute top-[1150vh] left-[15vw] w-[38vw] h-[38vw] max-w-[600px] max-h-[600px] min-w-[240px] min-h-[240px] rounded-full bg-pastel-lemon/28 blur-[60px]" },
+  { cls: "absolute top-[1200vh] right-[-3vw] w-[35vw] h-[35vw] max-w-[550px] max-h-[550px] min-w-[220px] min-h-[220px] rounded-full bg-pastel-coral/25 blur-[60px]" },
 ];
 
 const Index = () => {
