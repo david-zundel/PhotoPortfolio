@@ -46,7 +46,11 @@ const Index = () => {
     <div className="min-h-screen bg-background relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         {ORBS.map((orb, index) => (
-          <div key={index} className={orb.cls} style={orb.style} />
+          <div
+            key={index}
+            className={`${orb.cls} saturate-150 brightness-110`}
+            style={orb.style}
+          />
         ))}
       </div>
 
