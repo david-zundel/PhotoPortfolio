@@ -5,8 +5,12 @@ import { Link } from "react-router-dom";
 import Lightbox, { LightboxImage } from "@/components/Lightbox";
 import ProgressiveImage from "@/components/ProgressiveImage";
 import { supabase } from "@/integrations/supabase/client";
+import { getPreviewSrcSet } from "@/lib/image-utils";
 
 type FilterType = "all" | "landscapes" | "portraits";
+
+const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 30vw, (min-width: 640px) 46vw, 92vw";
+const GALLERY_IMAGE_WIDTHS = [360, 540, 720, 960, 1280] as const;
 
 const Gallery = () => {
   const [filter, setFilter] = useState<FilterType>("all");
@@ -102,10 +106,13 @@ const Gallery = () => {
                     src={photo.src}
                     alt={photo.alt || ""}
                     className="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
+                    srcSet={getPreviewSrcSet(photo.src, GALLERY_IMAGE_WIDTHS, 78)}
+                    sizes={GALLERY_IMAGE_SIZES}
+                    loading={i < 3 ? "eager" : "lazy"}
+                    fetchPriority={i < 2 ? "high" : "auto"}
                     draggable={false}
-                    previewWidth={1200}
-                    previewQuality={75}
+                    previewWidth={960}
+                    previewQuality={78}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none" />
                   {photo.location && (
