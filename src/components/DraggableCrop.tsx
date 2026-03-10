@@ -68,14 +68,16 @@ const DraggableCrop = ({
   const handleSave = async () => {
     const { error } = await supabase
       .from("photos")
-      .update({ crop_x: cropX, crop_y: cropY } as any)
+      .update({ crop_x: cropX, crop_y: cropY })
       .eq("id", photoId);
+
     if (error) {
-      toast.error("Failed to save position");
-    } else {
-      toast.success("Position saved");
-      onSave?.(cropX, cropY);
+      toast.error(error.message);
+      return;
     }
+
+    toast.success("Position saved");
+    onSave?.(cropX, cropY);
     setEditing(false);
   };
 
@@ -87,7 +89,7 @@ const DraggableCrop = ({
 
   const imgStyle = useMemo(() => ({ objectPosition: `${cropX}% ${cropY}%` }), [cropX, cropY]);
   const previewSrcSet = useMemo(
-    () => getPreviewSrcSet(src, [480, 720, 960, 1280, 1600], 78),
+    () => getPreviewSrcSet(src, [360, 540, 720, 960, 1200, 1440], 74),
     [src]
   );
 
@@ -105,8 +107,8 @@ const DraggableCrop = ({
         style={imgStyle}
         srcSet={previewSrcSet}
         sizes={sizes}
-        previewWidth={priority ? 1280 : 960}
-        previewQuality={78}
+        previewWidth={priority ? 1200 : 900}
+        previewQuality={74}
         fetchPriority={priority ? "high" : "auto"}
         loading={priority ? "eager" : "lazy"}
         draggable={false}

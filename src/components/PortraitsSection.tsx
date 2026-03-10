@@ -3,6 +3,8 @@ import ScrollReveal from "./ScrollReveal";
 import Lightbox, { LightboxImage } from "./Lightbox";
 import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
+import { loadedCache } from "./ProgressiveImage";
+import { getPreviewUrl } from "@/lib/image-utils";
 
 type PortraitData = {
   id: string;
@@ -52,6 +54,19 @@ const PortraitsSection = () => {
             cropY: p.crop_y ?? 50,
           }))
         );
+
+        const preloadWidth =
+          typeof window !== "undefined" && window.innerWidth >= 1280
+            ? 1200
+            : typeof window !== "undefined" && window.innerWidth >= 768
+              ? 1000
+              : 900;
+
+        data.slice(0, 2).forEach((p: any) => {
+          const img = new Image();
+          img.onload = () => loadedCache.add(p.src);
+          img.src = getPreviewUrl(p.src, preloadWidth, 74);
+        });
       }
     };
     fetchData();
@@ -96,7 +111,7 @@ const PortraitsSection = () => {
                 initialY={p.cropY}
                 isAdmin={isAdmin}
                 aspectClass="aspect-[2/3]"
-                priority={i === 0}
+                priority={i < 2}
                 onSave={(x, y) => handleCropSave(i, x, y)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
