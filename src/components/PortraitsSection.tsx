@@ -15,6 +15,25 @@ type PortraitData = {
   cropY: number;
 };
 
+const HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS = [360, 540, 720, 960, 1200, 1440] as const;
+
+const getClosestPreviewWidth = (targetWidth: number) =>
+  HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS.find((width) => width >= targetWidth) ??
+  HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS[HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS.length - 1];
+
+const getPortraitPreloadWidth = () => {
+  if (typeof window === "undefined") return 960;
+
+  const viewportWidth = window.innerWidth;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const slotWidth =
+    viewportWidth >= 1280 ? viewportWidth * 0.38 :
+    viewportWidth >= 768 ? viewportWidth * 0.44 :
+    viewportWidth * 0.92;
+
+  return getClosestPreviewWidth(Math.ceil(slotWidth * dpr));
+};
+
 const PortraitsSection = () => {
   const [portraits, setPortraits] = useState<PortraitData[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -55,18 +74,26 @@ const PortraitsSection = () => {
           }))
         );
 
-        const preloadWidth =
-          typeof window !== "undefined" && window.innerWidth >= 1280
-            ? 1200
-            : typeof window !== "undefined" && window.innerWidth >= 768
-              ? 1000
-              : 900;
-
-        data.slice(0, 2).forEach((p: any) => {
+        const preloadWidth = getPortraitPreloadWidth();
+        const preload = (photo: any) => {
           const img = new Image();
-          img.onload = () => loadedCache.add(p.src);
-          img.src = getPreviewUrl(p.src, preloadWidth, 74);
-        });
+          img.onload = () => loadedCache.add(photo.src);
+          img.src = getPreviewUrl(photo.src, preloadWidth, 74);
+        };
+
+        data.slice(0, 2).forEach(preload);
+
+        const remaining = data.slice(2);
+        if (remaining.length > 0) {
+          const schedule =
+            typeof window !== "undefined" && "requestIdleCallback" in window
+              ? window.requestIdleCallback.bind(window)
+              : (cb: () => void) => window.setTimeout(cb, 250);
+
+          schedule(() => {
+            remaining.forEach(preload);
+          });
+        }
       }
     };
     fetchData();
