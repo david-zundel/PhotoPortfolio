@@ -6,6 +6,8 @@ export type ProgressiveImageMode = "intrinsic" | "cover";
 interface ProgressiveImageProps {
   src: string;
   alt?: string;
+  srcSet?: string;
+  sizes?: string;
 
   /**
    * Wrapper element class.
@@ -46,6 +48,8 @@ export const loadedCache = new Set<string>();
 const ProgressiveImage = memo(({
   src,
   alt = "",
+  srcSet,
+  sizes,
   containerClassName = "",
   imgClassName,
   className,
@@ -103,6 +107,8 @@ const ProgressiveImage = memo(({
             title=""
             className={mergedImgClass}
             style={style}
+            srcSet={useFallback ? undefined : srcSet}
+            sizes={useFallback ? undefined : sizes}
             fetchPriority={fetchPriority}
             loading={loading}
             decoding="async"
@@ -122,6 +128,8 @@ const ProgressiveImage = memo(({
         title=""
         className={mergedImgClass}
         style={style}
+        srcSet={useFallback ? undefined : srcSet}
+        sizes={useFallback ? undefined : sizes}
         fetchPriority={fetchPriority}
         loading={loading}
         decoding="async"
@@ -179,6 +187,8 @@ const ProgressiveImage = memo(({
           // Avoid the invisible full image blocking interactions before it's ready.
           pointerEvents: fullLoaded ? "auto" : "none",
         }}
+        srcSet={useFallback ? undefined : srcSet}
+        sizes={useFallback ? undefined : sizes}
         fetchPriority={fetchPriority}
         loading={loading}
         decoding="async"

@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Move, Check, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import ProgressiveImage from "./ProgressiveImage";
+import { getPreviewSrcSet } from "@/lib/image-utils";
 import { toast } from "sonner";
 
 interface DraggableCropProps {
@@ -11,6 +13,7 @@ interface DraggableCropProps {
   isAdmin: boolean;
   className?: string;
   aspectClass?: string;
+  priority?: boolean;
   onSave?: (x: number, y: number) => void;
 }
 
@@ -22,6 +25,7 @@ const DraggableCrop = ({
   isAdmin,
   className = "",
   aspectClass = "aspect-[2/3]",
+  priority = false,
   onSave,
 }: DraggableCropProps) => {
   const [cropX, setCropX] = useState(initialX);
@@ -82,19 +86,29 @@ const DraggableCrop = ({
   };
 
   const imgStyle = useMemo(() => ({ objectPosition: `${cropX}% ${cropY}%` }), [cropX, cropY]);
+  const previewSrcSet = useMemo(
+    () => getPreviewSrcSet(src, [480, 720, 960, 1280, 1600], 78),
+    [src]
+  );
+
+  const sizes = "(min-width: 1280px) 38vw, (min-width: 768px) 44vw, 92vw";
 
   return (
     <div ref={containerRef} className={`relative overflow-hidden bg-muted ${aspectClass} ${className}`}>
-      <img
+      <ProgressiveImage
         src={src}
         alt=""
-        className={`absolute inset-0 w-full h-full object-cover ${
+        mode="cover"
+        imgClassName={`absolute inset-0 w-full h-full object-cover ${
           editing ? "cursor-grab active:cursor-grabbing" : "group-hover:scale-105 transition-transform duration-700"
         }`}
         style={imgStyle}
-        fetchPriority="high"
-        loading="eager"
-        decoding="async"
+        srcSet={previewSrcSet}
+        sizes={sizes}
+        previewWidth={priority ? 1280 : 960}
+        previewQuality={78}
+        fetchPriority={priority ? "high" : "auto"}
+        loading={priority ? "eager" : "lazy"}
         draggable={false}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}

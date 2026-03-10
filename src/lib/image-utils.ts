@@ -18,3 +18,17 @@ export const getPreviewUrl = (src: string, width = 600, quality = 60): string =>
 };
 
 export const getThumbUrl = (src: string): string => getPreviewUrl(src, 60, 20);
+
+export const getPreviewSrcSet = (
+  src: string,
+  widths: readonly number[],
+  quality = 75
+): string | undefined => {
+  if (widths.length === 0) return undefined;
+
+  const candidates = widths
+    .map((width) => `${getPreviewUrl(src, width, quality)} ${width}w`)
+    .join(", ");
+
+  return candidates || undefined;
+};
