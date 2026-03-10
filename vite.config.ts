@@ -5,7 +5,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: "/poppy-picture-path/",
+  base: "/PhotoPortfolio/",
   server: {
     host: "::",
     port: 8080,
