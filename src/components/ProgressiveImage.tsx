@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useCallback } from "react";
+import { useState, useEffect, memo, useCallback, useRef } from "react";
 import { getPreviewUrl, getThumbUrl } from "@/lib/image-utils";
 
 export type ProgressiveImageMode = "intrinsic" | "cover";
@@ -32,6 +32,7 @@ interface ProgressiveImageProps {
 
   fetchPriority?: "high" | "low" | "auto";
   loading?: "eager" | "lazy";
+  lazyRootMargin?: string;
   draggable?: boolean;
   previewWidth?: number;
   previewQuality?: number;
@@ -57,6 +58,7 @@ const ProgressiveImage = memo(({
   mode = "intrinsic",
   fetchPriority,
   loading = "eager",
+  lazyRootMargin = "1200px 0px",
   draggable,
   previewWidth = 1920,
   previewQuality = 75,
@@ -66,8 +68,10 @@ const ProgressiveImage = memo(({
   onFullLoad,
 }: ProgressiveImageProps) => {
   const alreadyCached = loadedCache.has(src);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const [fullLoaded, setFullLoaded] = useState(alreadyCached);
   const [useFallback, setUseFallback] = useState(false);
+  const [shouldLoadFull, setShouldLoadFull] = useState(alreadyCached || loading !== "lazy");
 
   // Try preview URL first, fall back to original if it fails
   const previewSrc = getPreviewUrl(src, previewWidth, previewQuality);
@@ -77,6 +81,34 @@ const ProgressiveImage = memo(({
   useEffect(() => {
     if (loadedCache.has(src)) setFullLoaded(true);
   }, [src]);
+
+  useEffect(() => {
+    setShouldLoadFull(loadedCache.has(src) || loading !== "lazy");
+  }, [src, loading]);
+
+  useEffect(() => {
+    if (shouldLoadFull || loading !== "lazy" || !wrapperRef.current) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setShouldLoadFull(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldLoadFull(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: lazyRootMargin,
+      }
+    );
+
+    observer.observe(wrapperRef.current);
+    return () => observer.disconnect();
+  }, [shouldLoadFull, loading, lazyRootMargin]);
 
   const handleLoad = useCallback(() => {
     loadedCache.add(src);
@@ -152,7 +184,7 @@ const ProgressiveImage = memo(({
     mode === "intrinsic" ? { gridArea: "1 / 1" } : {};
 
   return (
-    <div className={containerClassName} style={containerStyle}>
+    <div ref={wrapperRef} className={containerClassName} style={containerStyle}>
       {!fullLoaded && (
         <img
           src={thumbSrc}
@@ -173,32 +205,34 @@ const ProgressiveImage = memo(({
           }}
         />
       )}
-      <img
-        src={displaySrc}
-        alt={alt}
-        title=""
-        className={`${mergedImgClass} transition-opacity duration-500 ${
-          fullLoaded ? "opacity-100" : "opacity-0"
-        }`}
-        style={{
-          ...style,
-          ...overlapStyle,
-          zIndex: 2,
-          // Avoid the invisible full image blocking interactions before it's ready.
-          pointerEvents: fullLoaded ? "auto" : "none",
-        }}
-        srcSet={useFallback ? undefined : srcSet}
-        sizes={useFallback ? undefined : sizes}
-        fetchPriority={fetchPriority}
-        loading={loading}
-        decoding="async"
-        draggable={draggable}
-        onLoad={handleLoad}
-        onError={handleError}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-      />
+      {shouldLoadFull && (
+        <img
+          src={displaySrc}
+          alt={alt}
+          title=""
+          className={`${mergedImgClass} transition-opacity duration-500 ${
+            fullLoaded ? "opacity-100" : "opacity-0"
+          }`}
+          style={{
+            ...style,
+            ...overlapStyle,
+            zIndex: 2,
+            // Avoid the invisible full image blocking interactions before it's ready.
+            pointerEvents: fullLoaded ? "auto" : "none",
+          }}
+          srcSet={useFallback ? undefined : srcSet}
+          sizes={useFallback ? undefined : sizes}
+          fetchPriority={fetchPriority}
+          loading={loading}
+          decoding="async"
+          draggable={draggable}
+          onLoad={handleLoad}
+          onError={handleError}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+        />
+      )}
     </div>
   );
 });
