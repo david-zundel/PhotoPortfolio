@@ -183,6 +183,17 @@ export default function RunningDeer(props: RunningDeerProps) {
 
   const [lab, setLab] = useState<Partial<RunningDeerProps> | null>(null);
   const [labOpen, setLabOpen] = useState(false);
+  // Track viewport width so the crossing keeps a constant *visual* speed on
+  // narrow screens (a fixed duration would look far too slow on mobile).
+  const [vw, setVw] = useState<number>(() =>
+    typeof window !== "undefined" ? window.innerWidth : 1440
+  );
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   useEffect(() => {
     const wanted =
@@ -211,6 +222,12 @@ export default function RunningDeer(props: RunningDeerProps) {
     animationDelay: `calc(${cycle} * ${fraction})`,
   });
 
+  // Keep pixel speed roughly constant across screen widths. The deer travels
+  // (viewport + 420px) per loop; scale the duration to that distance, referenced
+  // to a ~1440px desktop so the authored speed is unchanged there.
+  const crossFactor = Math.min(1, Math.max(0.28, (vw + 420) / 1860));
+  const effectiveCross = v.crossSeconds * crossFactor;
+
   const vars = {
     "--deer-color": v.color,
     "--deer-far": v.farColor,
@@ -218,7 +235,7 @@ export default function RunningDeer(props: RunningDeerProps) {
     "--deer-cream": v.creamColor,
     "--deer-height": `${v.height}px`,
     "--deer-hop": `${v.hopHeight}px`,
-    "--deer-cross": `${v.crossSeconds}s`,
+    "--deer-cross": `${effectiveCross}s`,
     "--deer-cycle": cycle,
     "--deer-bottom": `${v.bottom}px`,
     zIndex: v.zIndex,
@@ -288,7 +305,7 @@ export default function RunningDeer(props: RunningDeerProps) {
   return (
     <>
       <div className="rd-root" style={vars} aria-hidden="true">
-        <div className="rd-travel" style={{ animationDelay: `${v.crossDelay}s` }}>
+        <div className="rd-travel" style={{ animationDelay: `${v.crossDelay * crossFactor}s` }}>
           <div className="rd-hop">
             <svg
               className="rd-svg"
