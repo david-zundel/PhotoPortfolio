@@ -5,7 +5,7 @@ const ContactSection = () => {
     <section id="contact" className="relative py-20 md:py-40 px-6 text-center">
 
       <ScrollReveal className="relative z-10">
-        <h2 className="section-title section-title-contact mb-10">
+        <h2 className="section-title section-title-winter mb-10">
           Contact Me
         </h2>
         <a

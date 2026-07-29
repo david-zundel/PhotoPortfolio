@@ -6,6 +6,7 @@ import Lightbox, { LightboxImage } from "@/components/Lightbox";
 import ProgressiveImage from "@/components/ProgressiveImage";
 import { supabase } from "@/integrations/supabase/client";
 import { getPreviewSrcSet } from "@/lib/image-utils";
+import WinterSky from "@/components/WinterSky";
 
 type FilterType = "all" | "landscapes" | "portraits";
 
@@ -49,12 +50,8 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[10vh] right-[15vw] w-[30vw] h-[30vw] max-w-[500px] max-h-[500px] min-w-[200px] min-h-[200px] rounded-full bg-pastel-lavender/40 blur-3xl saturate-150 brightness-110" />
-        <div className="absolute top-[40vh] right-[-5vw] w-[28vw] h-[28vw] max-w-[450px] max-h-[450px] min-w-[180px] min-h-[180px] rounded-full bg-pastel-mint/40 blur-3xl saturate-150 brightness-110" />
-        <div className="absolute top-[70vh] left-[10vw] w-[25vw] h-[25vw] max-w-[400px] max-h-[400px] min-w-[180px] min-h-[180px] rounded-full bg-pastel-peach/35 blur-3xl saturate-150 brightness-110" />
-      </div>
+    <div className="min-h-screen bg-background relative isolate overflow-hidden">
+      <WinterSky />
 
       <div className="relative z-10">
         <div className="pt-12 pb-8 px-6">
@@ -71,7 +68,7 @@ const Gallery = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="section-title gradient-text mb-4">Gallery</h1>
+              <h1 className="winter-name mb-4">Gallery</h1>
               <p className="text-lg text-muted-foreground font-body font-light max-w-md">
                 The complete collection — click any photo for details.
               </p>

@@ -119,7 +119,7 @@ const PortraitsSection = () => {
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection Two
           </p>
-          <h2 className="section-title section-title-portraits mb-6">Portraits</h2>
+          <h2 className="section-title section-title-winter mb-6">Portraits</h2>
           <div className="pastel-divider w-24 mx-auto" />
         </ScrollReveal>
       </div>

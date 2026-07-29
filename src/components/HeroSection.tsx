@@ -26,7 +26,7 @@ const HeroSection = () => {
         >
           Visual Storyteller
         </motion.p>
-        <h1 className="section-title gradient-text mb-6">
+        <h1 className="winter-name mb-6">
           David
           <br />
           Zundel

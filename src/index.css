@@ -153,3 +153,88 @@
   }
 
 }
+
+/* ===================== Winter watercolor sky ===================== */
+.winter-sky {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+.ws-grad {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48% 16% at 18% 7%, rgba(247,236,201,.7), transparent 60%),
+    radial-gradient(44% 13% at 82% 15%, rgba(198,196,214,.6), transparent 62%),
+    radial-gradient(52% 12% at 30% 40%, rgba(214,224,236,.5), transparent 60%),
+    radial-gradient(52% 13% at 74% 60%, rgba(244,222,214,.55), transparent 60%),
+    radial-gradient(58% 15% at 40% 82%, rgba(232,202,222,.6), transparent 62%),
+    linear-gradient(180deg,#aec6da 0%,#c6d6e2 16%,#dfe6e6 36%,#eee9de 54%,#ded0da 72%,#e9cdbf 88%,#f4dac7 100%);
+}
+.ws-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(34px);
+  opacity: .9;
+  max-width: 640px;
+  max-height: 640px;
+  will-change: transform;
+}
+.ws-bloom {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='500' height='500'%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.016' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='0.9'/%3E%3C/svg%3E");
+  background-size: 560px;
+  mix-blend-mode: multiply;
+  opacity: .13;
+}
+.ws-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.65'/%3E%3C/svg%3E");
+  background-size: 240px;
+  mix-blend-mode: soft-light;
+  opacity: .5;
+}
+.ws-haze {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 26vh;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,.16) 45%, rgba(255,255,255,0) 100%);
+  filter: blur(6px);
+}
+.ws-snow {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+@keyframes wsFloatA { 0% { transform: translate(0,0); } 100% { transform: translate(4vw,-1.4vh); } }
+@keyframes wsFloatB { 0% { transform: translate(0,0); } 100% { transform: translate(-3.4vw,1.2vh); } }
+@keyframes wsFloatC { 0% { transform: translate(0,0); } 100% { transform: translate(2.6vw,1.5vh); } }
+
+.winter-name {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(44px, 6.4vw, 92px);
+  line-height: .98;
+  letter-spacing: -.01em;
+  color: #e9f1f9;
+  text-shadow: 0 2px 18px rgba(35,50,65,.42), 0 1px 2px rgba(35,50,65,.30);
+  padding-bottom: .06em;
+}
+
+/* Section titles in the winter palette (deep slate that reads over the sky) */
+.section-title-winter {
+  color: #37454f;
+  -webkit-text-fill-color: currentColor;
+  text-shadow: 0 1px 18px rgba(255,255,255,.45);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-blob { animation: none !important; }
+}
