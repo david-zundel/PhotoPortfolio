@@ -166,12 +166,12 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(48% 16% at 18% 7%, rgba(247,236,201,.7), transparent 60%),
-    radial-gradient(44% 13% at 82% 15%, rgba(198,196,214,.6), transparent 62%),
-    radial-gradient(52% 12% at 30% 40%, rgba(214,224,236,.5), transparent 60%),
-    radial-gradient(52% 13% at 74% 60%, rgba(244,222,214,.55), transparent 60%),
-    radial-gradient(58% 15% at 40% 82%, rgba(232,202,222,.6), transparent 62%),
-    linear-gradient(180deg,#aec6da 0%,#c6d6e2 16%,#dfe6e6 36%,#eee9de 54%,#ded0da 72%,#e9cdbf 88%,#f4dac7 100%);
+    radial-gradient(55% 20% at 20% 6%, rgba(255,248,220,.8), transparent 60%),
+    radial-gradient(50% 16% at 82% 14%, rgba(190,196,230,.5), transparent 62%),
+    radial-gradient(60% 16% at 32% 42%, rgba(140,198,238,.62), transparent 62%),
+    radial-gradient(56% 15% at 74% 62%, rgba(255,230,214,.5), transparent 60%),
+    radial-gradient(62% 18% at 40% 84%, rgba(240,206,230,.55), transparent 62%),
+    linear-gradient(180deg,#7dbdec 0%,#a4d4f2 15%,#c8e6f6 33%,#eef5f1 52%,#e2d4ea 70%,#f4d8c8 86%,#fde7d6 100%);
 }
 .ws-blob {
   position: absolute;
