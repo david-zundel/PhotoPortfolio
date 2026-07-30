@@ -414,9 +414,6 @@ export default function Weather({
     ));
   }, [reduced]);
 
-  // Quantised to 0.5px. A backdrop-filter that changes every frame forces a full
-  // re-blur of everything behind the layer — the main source of stutter.
-  const blurPx = Math.round(p.blur * coverage * ramp(0.7) * 2) / 2;
   const stormGone = cleared >= 2;
   // Calm snow crossfades in over the first 70% of the fade and then stays.
   const calmOpacity = Math.min(1, q / 0.7);
@@ -443,17 +440,11 @@ export default function Weather({
           willChange: "opacity",
         }}
       />
-      {/* atmospheric blur on everything behind the layer */}
-      {blurPx > 0.05 && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            backdropFilter: `blur(${blurPx.toFixed(2)}px)`,
-            WebkitBackdropFilter: `blur(${blurPx.toFixed(2)}px)`,
-          }}
-        />
-      )}
+      {/* Atmospheric backdrop-blur removed for scroll performance: a full-viewport
+          backdrop-filter forces the browser to re-render everything behind this
+          layer on every scroll frame, which read as a whole-page "refresh"/pause
+          while scrolling. The storm still reads through the gloom + wash + cloud
+          layers below. */}
       {/* drifting cloud masses — dropped on the first idle after they hit 0 */}
       {cleared < 1 && (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: Math.min(1, p.cloud * coverage) * ramp(0.8), willChange: "opacity" }}>

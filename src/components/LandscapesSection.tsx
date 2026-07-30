@@ -84,7 +84,6 @@ const LandscapesSection = () => {
 
   return (
     <section id="landscapes" className="relative py-16 md:py-28 px-6">
-      <div className="cv-auto">
       <div className="text-center mb-8 md:mb-12 relative z-10">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
@@ -141,7 +140,6 @@ const LandscapesSection = () => {
             </p>
           )}
         </div>
-      </div>
       </div>
 
       <Lightbox

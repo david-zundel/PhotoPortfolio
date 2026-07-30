@@ -9,10 +9,9 @@
  * and clicking a side slide brings it to centre.
  *
  * Centering is measured from the real DOM via a ResizeObserver, so it re-centres
- * on resize AND when a `content-visibility:auto` section is first revealed
- * (viewport goes 0 → real width). The very first placement is instant; only
- * later navigation glides. Purely presentational — data/lightbox stay with the
- * parent section.
+ * on any size change — window resize, font load, or the viewport first gaining a
+ * width. The very first placement is instant; only later navigation glides.
+ * Purely presentational — data/lightbox stay with the parent section.
  */
 import {
   Children,
@@ -57,9 +56,8 @@ const SlideCarousel = ({
   const [animate, setAnimate] = useState(false);
 
   // Measure the active slide and translate the track so it sits dead-center.
-  // A ResizeObserver re-runs this whenever the viewport gains/changes size —
-  // including the 0 → real-width transition when a content-visibility section
-  // scrolls into view — so centering is always correct without a window listener.
+  // A ResizeObserver re-runs this whenever the viewport gains/changes size, so
+  // centering stays correct on resize without a global window listener.
   useLayoutEffect(() => {
     const vp = viewportRef.current;
     if (!vp) return;
