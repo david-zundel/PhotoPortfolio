@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import ScrollReveal from "./ScrollReveal";
+import SlideCarousel from "./SlideCarousel";
 import Lightbox, { LightboxImage } from "./Lightbox";
 import DraggableCrop from "./DraggableCrop";
 import { supabase } from "@/integrations/supabase/client";
@@ -36,8 +37,8 @@ const getPortraitPreloadWidth = () => {
 
 const PortraitsSection = () => {
   const [portraits, setPortraits] = useState<PortraitData[]>([]);
+  const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -112,9 +113,11 @@ const PortraitsSection = () => {
 
   if (portraits.length === 0) return null;
 
+  const current = portraits[Math.min(active, portraits.length - 1)];
+
   return (
-    <section id="portraits" className="relative py-16 md:py-32 px-6">
-      <div className="text-center mb-12 md:mb-24">
+    <section id="portraits" className="relative py-16 md:py-28 px-6">
+      <div className="text-center mb-8 md:mb-12">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection Two
@@ -124,12 +127,18 @@ const PortraitsSection = () => {
         </ScrollReveal>
       </div>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
-        {portraits.map((p, i) => (
-          <ScrollReveal key={p.id} delay={i * 0.15} className="group">
+      <div className="max-w-5xl mx-auto">
+        <SlideCarousel
+          active={active}
+          onActiveChange={setActive}
+          onActivate={() => setLightboxOpen(true)}
+          slideWidthClass="w-[clamp(200px,58vw,340px)]"
+          label="Portrait photographs"
+        >
+          {portraits.map((p, i) => (
             <div
-              className="relative rounded-2xl cursor-pointer overflow-hidden"
-              onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+              key={p.id}
+              className="group relative rounded-2xl overflow-hidden shadow-2xl"
             >
               <DraggableCrop
                 src={p.src}
@@ -143,13 +152,28 @@ const PortraitsSection = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </div>
-          </ScrollReveal>
-        ))}
+          ))}
+        </SlideCarousel>
+
+        {(current.title !== "Untitled" || current.subtitle) && (
+          <div key={active} className="slide-caption text-center max-w-2xl mx-auto mt-8 px-4">
+            {current.title !== "Untitled" && (
+              <h3 className="text-xl md:text-2xl font-semibold font-display text-foreground/90 mb-1">
+                {current.title}
+              </h3>
+            )}
+            {current.subtitle && (
+              <p className="text-base text-muted-foreground font-body font-light">
+                {current.subtitle}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       <Lightbox
         images={lightboxImages}
-        initialIndex={lightboxIndex}
+        initialIndex={active}
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
       />

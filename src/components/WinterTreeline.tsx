@@ -9,7 +9,7 @@
 import { useMemo, type CSSProperties } from "react";
 
 const DEFAULT_COLORS = {
-  near: "#5d7566",
+  near: "#6f9a66",
   far: "#c2d2dc",
   ink: "#41352a",
   snow: "#f7f1e6",

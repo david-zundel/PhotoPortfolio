@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import ScrollReveal from "./ScrollReveal";
-import LandscapeCountry from "./LandscapeCountry";
+import SlideCarousel from "./SlideCarousel";
+import ProgressiveImage from "./ProgressiveImage";
 import Lightbox, { LightboxImage } from "./Lightbox";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -25,9 +26,10 @@ const TEXT_GRADIENTS = [
 
 const LandscapesSection = () => {
   const [countries, setCountries] = useState<CountryData[]>([]);
+  const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxImages, setLightboxImages] = useState<LightboxImage[]>([]);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
+  // Natural aspect ratio (w/h) per image so panoramas show whole (never cropped)
+  const [ratios, setRatios] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,9 +51,17 @@ const LandscapesSection = () => {
             textGradient: p.text_gradient || TEXT_GRADIENTS[index % TEXT_GRADIENTS.length],
           }))
         );
-        // Preload all images immediately so they're ready when scrolled into view
+        // Preload all images immediately so gliding between slides is instant,
+        // and record each one's true aspect ratio to size its card (no cropping).
         data.forEach((p: any) => {
           const img = new Image();
+          img.onload = () => {
+            if (img.naturalWidth && img.naturalHeight) {
+              setRatios((prev) =>
+                prev[p.src] ? prev : { ...prev, [p.src]: img.naturalWidth / img.naturalHeight }
+              );
+            }
+          };
           img.src = p.src;
         });
       }
@@ -59,17 +69,19 @@ const LandscapesSection = () => {
     fetchData();
   }, []);
 
-  const handleImageClick = (images: LightboxImage[], index: number) => {
-    setLightboxImages(images);
-    setLightboxIndex(index);
-    setLightboxOpen(true);
-  };
+  const lightboxImages: LightboxImage[] = countries.map((c) => ({
+    src: c.image,
+    alt: `Landscape of ${c.country}`,
+    location: c.country,
+  }));
 
   if (countries.length === 0) return null;
 
+  const current = countries[Math.min(active, countries.length - 1)];
+
   return (
-    <section id="landscapes" className="relative">
-      <div className="pt-16 md:pt-32 pb-6 md:pb-12 px-6 text-center relative z-10">
+    <section id="landscapes" className="relative py-16 md:py-28 px-6">
+      <div className="text-center mb-8 md:mb-12 relative z-10">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
             Collection One
@@ -79,13 +91,57 @@ const LandscapesSection = () => {
         </ScrollReveal>
       </div>
 
-      {countries.map((c, i) => (
-        <LandscapeCountry key={c.country + i} {...c} index={i} onImageClick={handleImageClick} />
-      ))}
+      <div className="max-w-6xl mx-auto">
+        <SlideCarousel
+          active={active}
+          onActiveChange={setActive}
+          onActivate={() => setLightboxOpen(true)}
+          slideWidthClass="w-[clamp(260px,66vw,640px)]"
+          label="Landscape photographs"
+        >
+          {countries.map((c, i) => (
+            <div
+              key={c.country + i}
+              className="rounded-2xl overflow-hidden bg-muted shadow-2xl"
+            >
+              <div
+                className="relative w-full"
+                style={{ aspectRatio: String(ratios[c.image] ?? 1.5) }}
+              >
+                <ProgressiveImage
+                  src={c.image}
+                  alt={`Landscape of ${c.country}`}
+                  mode="cover"
+                  containerClassName="absolute inset-0"
+                  previewWidth={1600}
+                  previewQuality={82}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  fetchPriority={i === 0 ? "high" : "auto"}
+                />
+              </div>
+            </div>
+          ))}
+        </SlideCarousel>
+
+        {/* Caption for the centered landscape — updates as you navigate */}
+        <div key={active} className="slide-caption text-center max-w-2xl mx-auto mt-8 px-4">
+          <h3
+            className="text-2xl md:text-3xl font-semibold font-display mb-3 bg-clip-text text-transparent inline-block"
+            style={{ backgroundImage: current.textGradient, paddingBottom: "0.1em" }}
+          >
+            {current.country}
+          </h3>
+          {current.description && (
+            <p className="text-base text-muted-foreground font-body font-light leading-relaxed">
+              {current.description}
+            </p>
+          )}
+        </div>
+      </div>
 
       <Lightbox
         images={lightboxImages}
-        initialIndex={lightboxIndex}
+        initialIndex={active}
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
       />

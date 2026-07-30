@@ -52,8 +52,8 @@ export type RunningDeerProps = {
 };
 
 const DEFAULTS = {
-  color: "#8a5a3b",
-  farColor: "#b98a63",
+  color: "#a56a3f",
+  farColor: "#cc9a6f",
   inkColor: "#4a2f22",
   creamColor: "#f5e6d0",
   height: 150,
@@ -69,7 +69,9 @@ const DEFAULTS = {
 const STYLE_ID = "running-deer-keyframes";
 
 const CSS = `
-@keyframes rdCross { from { left: -280px; } to { left: calc(100% + 140px); } }
+/* Crossing runs on the compositor (transform), so it stays smooth during
+   scroll instead of stalling behind main-thread work (e.g. the Weather blur). */
+@keyframes rdCross { from { transform: translateX(-280px); } to { transform: translateX(calc(100vw + 140px)); } }
 @keyframes rdHop {
   0%   { transform: translateY(0) rotate(4deg) scaleY(0.96); }
   6%   { transform: translateY(0) rotate(2deg) scaleY(0.89); }
@@ -158,7 +160,7 @@ const CSS = `
   100% { transform: scale(1.01, 0.97) rotate(1deg); }
 }
 .rd-root { position: fixed; left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; }
-.rd-travel { position: absolute; bottom: var(--deer-bottom); animation: rdCross var(--deer-cross) linear infinite; }
+.rd-travel { position: absolute; left: 0; bottom: var(--deer-bottom); animation: rdCross var(--deer-cross) linear infinite; will-change: transform; }
 .rd-hop { transform-origin: 24% 100%; animation: rdHop var(--deer-cycle) linear infinite; }
 .rd-svg { height: var(--deer-height); width: auto; display: block; }
 .rd-part { transform-box: view-box; }
