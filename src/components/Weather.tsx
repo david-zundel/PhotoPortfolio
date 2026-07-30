@@ -294,6 +294,9 @@ export default function Weather({
           st.width = size;
           st.height = size;
           st.color = `rgba(255,255,255,${(0.82 + c * 0.18).toFixed(2)})`;
+          // Fixed random tilt per crystal — keeps orientation variety WITHOUT the
+          // continuous rotation. The old spin read as the flakes tumbling "upward".
+          st.rotate = `${Math.round(b * 90 - 45)}deg`;
           // Only the biggest get a shadow — drop-shadow on hundreds of animated
           // elements is the one thing here that actually costs frames.
           if (a > 0.72) st.filter = "drop-shadow(0 1px 1.5px rgba(112,142,176,0.5))";
@@ -328,12 +331,9 @@ export default function Weather({
           st.opacity = 0;
           const dur = (layer.cfg.dur0 - a * layer.cfg.durR) / wind;
           const name = layer.kind === "mid" || layer.kind === "near" ? "bz-fall" : "bz-curve";
-          // Crystals get a second animation: bz-spin drives the standalone
-          // `rotate` property, so it composes with the transform animation.
-          const spinPart = spin
-            ? `, bz-spin ${(13 + a * 18).toFixed(1)}s linear ${(-b * 22).toFixed(1)}s infinite`
-            : "";
-          st.animation = `${name} ${dur.toFixed(2)}s linear ${(-c * dur).toFixed(2)}s infinite${spinPart}`;
+          // Crystals no longer spin — they keep the fixed tilt set above and just
+          // fall straight down like the rest of the snow.
+          st.animation = `${name} ${dur.toFixed(2)}s linear ${(-c * dur).toFixed(2)}s infinite`;
         }
 
         out.push(
