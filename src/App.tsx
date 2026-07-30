@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import RunningDeer from "./components/RunningDeer";
 import WinterTreeline from "./components/WinterTreeline";
+import Weather from "./components/Weather";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      {/* Snow — blizzard over the hero that hands off to calm snow on scroll. Owns all weather. */}
+      <Weather />
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<Index />} />

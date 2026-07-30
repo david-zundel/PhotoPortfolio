@@ -198,21 +198,6 @@
   mix-blend-mode: soft-light;
   opacity: .5;
 }
-.ws-haze {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 26vh;
-  z-index: 1;
-  pointer-events: none;
-  background: linear-gradient(180deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,.16) 45%, rgba(255,255,255,0) 100%);
-  filter: blur(6px);
-}
-.ws-snow {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
 @keyframes wsFloatA { 0% { transform: translate(0,0); } 100% { transform: translate(4vw,-1.4vh); } }
 @keyframes wsFloatB { 0% { transform: translate(0,0); } 100% { transform: translate(-3.4vw,1.2vh); } }
 @keyframes wsFloatC { 0% { transform: translate(0,0); } 100% { transform: translate(2.6vw,1.5vh); } }
