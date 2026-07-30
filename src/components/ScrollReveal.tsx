@@ -25,7 +25,6 @@ const ScrollReveal = ({ children, className = "", delay = 0, direction = "up" }:
     <div ref={ref} className={className}>
       <motion.div
         className="h-full w-full"
-        style={{ willChange: "opacity, transform" }}
         initial={{ opacity: 0, ...offset }}
         animate={isInView ? { opacity: 1, x: 0, y: 0 } : {}}
         transition={{

@@ -8,13 +8,14 @@
  * one glides off toward the edge. Prev/next buttons + clickable dots drive it,
  * and clicking a side slide brings it to centre.
  *
- * Centering is measured from the real DOM (works with any slide width / count
- * and re-centres on resize), so callers just provide the slides and a width
- * class. Purely presentational — data/lightbox stay with the parent section.
+ * Centering is measured from the real DOM via a ResizeObserver, so it re-centres
+ * on resize AND when a `content-visibility:auto` section is first revealed
+ * (viewport goes 0 → real width). The very first placement is instant; only
+ * later navigation glides. Purely presentational — data/lightbox stay with the
+ * parent section.
  */
 import {
   Children,
-  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -51,29 +52,39 @@ const SlideCarousel = ({
 
   const viewportRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const measuredRef = useRef(false);
   const [offset, setOffset] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [animate, setAnimate] = useState(false);
 
   // Measure the active slide and translate the track so it sits dead-center.
+  // A ResizeObserver re-runs this whenever the viewport gains/changes size —
+  // including the 0 → real-width transition when a content-visibility section
+  // scrolls into view — so centering is always correct without a window listener.
   useLayoutEffect(() => {
-    const recalc = () => {
-      const vp = viewportRef.current;
-      const tr = trackRef.current;
-      if (!vp || !tr) return;
-      const el = tr.children[active] as HTMLElement | undefined;
-      if (!el) return;
-      setOffset(vp.clientWidth / 2 - (el.offsetLeft + el.offsetWidth / 2));
-    };
-    recalc();
-    window.addEventListener("resize", recalc);
-    return () => window.removeEventListener("resize", recalc);
-  }, [active, count]);
+    const vp = viewportRef.current;
+    if (!vp) return;
 
-  // Skip the transition on first paint so the initial centering doesn't slide in.
-  useEffect(() => {
-    const id = window.requestAnimationFrame(() => setReady(true));
-    return () => window.cancelAnimationFrame(id);
-  }, []);
+    const measure = () => {
+      const track = trackRef.current;
+      const view = viewportRef.current;
+      if (!track || !view) return;
+      const width = view.clientWidth;
+      if (!width) return; // skipped/hidden — wait for the observer to fire again
+      const el = track.children[active] as HTMLElement | undefined;
+      if (!el) return;
+      setOffset(width / 2 - (el.offsetLeft + el.offsetWidth / 2));
+      if (!measuredRef.current) {
+        // Place the first frame instantly, then enable gliding for later moves.
+        measuredRef.current = true;
+        requestAnimationFrame(() => setAnimate(true));
+      }
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(vp);
+    return () => ro.disconnect();
+  }, [active, count]);
 
   const go = (dir: number) => onActiveChange((active + dir + count) % count);
 
@@ -91,7 +102,7 @@ const SlideCarousel = ({
           style={{
             gap: "1.5rem",
             transform: `translateX(${offset}px)`,
-            transition: ready ? `transform 0.55s ${EASE}` : "none",
+            transition: animate ? `transform 0.55s ${EASE}` : "none",
           }}
         >
           {items.map((child, i) => {
@@ -103,7 +114,7 @@ const SlideCarousel = ({
                 style={{
                   opacity: isActive ? 1 : 0.4,
                   transform: isActive ? "scale(1)" : "scale(0.88)",
-                  transition: ready
+                  transition: animate
                     ? `opacity 0.55s ease, transform 0.55s ${EASE}`
                     : "none",
                 }}

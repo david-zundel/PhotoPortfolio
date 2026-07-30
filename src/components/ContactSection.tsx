@@ -2,7 +2,7 @@ import ScrollReveal from "./ScrollReveal";
 
 const ContactSection = () => {
   return (
-    <section id="contact" className="relative py-20 md:py-40 px-6 text-center">
+    <section id="contact" className="relative py-20 md:py-40 px-6 text-center cv-auto">
 
       <ScrollReveal className="relative z-10">
         <h2 className="section-title section-title-winter mb-10">

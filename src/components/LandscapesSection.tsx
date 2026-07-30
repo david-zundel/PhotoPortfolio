@@ -4,6 +4,7 @@ import SlideCarousel from "./SlideCarousel";
 import ProgressiveImage from "./ProgressiveImage";
 import Lightbox, { LightboxImage } from "./Lightbox";
 import { supabase } from "@/integrations/supabase/client";
+import { getPreviewUrl } from "@/lib/image-utils";
 
 type CountryData = {
   country: string;
@@ -51,8 +52,10 @@ const LandscapesSection = () => {
             textGradient: p.text_gradient || TEXT_GRADIENTS[index % TEXT_GRADIENTS.length],
           }))
         );
-        // Preload all images immediately so gliding between slides is instant,
-        // and record each one's true aspect ratio to size its card (no cropping).
+        // Warm the exact preview each card renders (not the full-res original),
+        // and record each image's true aspect ratio to size its card (no crop).
+        // Loading previews instead of originals cuts a large chunk of decode and
+        // memory pressure that otherwise competes with scrolling.
         data.forEach((p: any) => {
           const img = new Image();
           img.onload = () => {
@@ -62,7 +65,7 @@ const LandscapesSection = () => {
               );
             }
           };
-          img.src = p.src;
+          img.src = getPreviewUrl(p.src, 1600, 82);
         });
       }
     };
@@ -81,6 +84,7 @@ const LandscapesSection = () => {
 
   return (
     <section id="landscapes" className="relative py-16 md:py-28 px-6">
+      <div className="cv-auto">
       <div className="text-center mb-8 md:mb-12 relative z-10">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
@@ -137,6 +141,7 @@ const LandscapesSection = () => {
             </p>
           )}
         </div>
+      </div>
       </div>
 
       <Lightbox

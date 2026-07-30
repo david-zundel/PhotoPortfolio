@@ -117,6 +117,7 @@ const PortraitsSection = () => {
 
   return (
     <section id="portraits" className="relative py-16 md:py-28 px-6">
+      <div className="cv-auto">
       <div className="text-center mb-8 md:mb-12">
         <ScrollReveal>
           <p className="text-sm font-medium tracking-[0.3em] uppercase text-muted-foreground mb-4 font-body">
@@ -169,6 +170,7 @@ const PortraitsSection = () => {
             )}
           </div>
         )}
+      </div>
       </div>
 
       <Lightbox

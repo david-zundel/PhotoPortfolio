@@ -285,6 +285,16 @@
   animation: slideFade 0.4s ease both;
 }
 
+/* Skip rendering/decoding a section until it's near the viewport. The `auto`
+   keyword remembers each section's real size after its first render, so the
+   scrollbar doesn't jump. Keep position:fixed descendants (e.g. the Lightbox)
+   OUTSIDE any element carrying this class — content-visibility implies paint
+   containment, which would trap a fixed child inside the section's box. */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .carousel-track { transition: none !important; }
   .carousel-slide { transition: none !important; }
