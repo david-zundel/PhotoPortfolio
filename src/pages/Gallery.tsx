@@ -54,7 +54,7 @@ const Gallery = () => {
     <div className="min-h-screen bg-background relative isolate overflow-hidden">
       <WinterSky />
       {/* Snow between the sky (z-0) and content (z-10) — falls behind the photos. */}
-      <Weather coverage={0.4} snowDensity={0.9} calmDensity={0.6} zIndex={5} />
+      <Weather coverage={0.25} snowDensity={0.9} calmDensity={0.6} zIndex={5} />
 
       <div className="relative z-10">
         <div className="pt-12 pb-8 px-6">

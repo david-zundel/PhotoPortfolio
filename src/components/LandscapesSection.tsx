@@ -118,8 +118,8 @@ const LandscapesSection = () => {
                   containerClassName="absolute inset-0"
                   previewWidth={1600}
                   previewQuality={82}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  fetchPriority={i === 0 ? "high" : "auto"}
+                  loading="eager"
+                  fetchPriority={i === active ? "high" : "auto"}
                 />
               </div>
             </div>

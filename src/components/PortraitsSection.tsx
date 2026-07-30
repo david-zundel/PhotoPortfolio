@@ -147,7 +147,8 @@ const PortraitsSection = () => {
                 initialY={p.cropY}
                 isAdmin={isAdmin}
                 aspectClass="aspect-[2/3]"
-                priority={i < 2}
+                priority={i === active}
+                eager
                 onSave={(x, y) => handleCropSave(i, x, y)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-foreground/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

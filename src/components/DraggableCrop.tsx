@@ -14,6 +14,9 @@ interface DraggableCropProps {
   className?: string;
   aspectClass?: string;
   priority?: boolean;
+  /** Force the image to load immediately (not lazily), without giving it high
+   *  network priority. Used by the carousel so every slide is ready up front. */
+  eager?: boolean;
   onSave?: (x: number, y: number) => void;
 }
 
@@ -26,6 +29,7 @@ const DraggableCrop = ({
   className = "",
   aspectClass = "aspect-[2/3]",
   priority = false,
+  eager = false,
   onSave,
 }: DraggableCropProps) => {
   const [cropX, setCropX] = useState(initialX);
@@ -110,7 +114,7 @@ const DraggableCrop = ({
         previewWidth={priority ? 1200 : 900}
         previewQuality={74}
         fetchPriority={priority ? "high" : "auto"}
-        loading={priority ? "eager" : "lazy"}
+        loading={eager || priority ? "eager" : "lazy"}
         draggable={false}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
