@@ -7,6 +7,7 @@ import ProgressiveImage from "@/components/ProgressiveImage";
 import { supabase } from "@/integrations/supabase/client";
 import { getPreviewSrcSet } from "@/lib/image-utils";
 import WinterSky from "@/components/WinterSky";
+import Weather from "@/components/Weather";
 
 type FilterType = "all" | "landscapes" | "portraits";
 
@@ -52,6 +53,8 @@ const Gallery = () => {
   return (
     <div className="min-h-screen bg-background relative isolate overflow-hidden">
       <WinterSky />
+      {/* Snow between the sky (z-0) and content (z-10) — falls behind the photos. */}
+      <Weather coverage={0.4} snowDensity={0.9} calmDensity={0.6} zIndex={5} />
 
       <div className="relative z-10">
         <div className="pt-12 pb-8 px-6">

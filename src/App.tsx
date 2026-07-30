@@ -10,7 +10,6 @@ import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import RunningDeer from "./components/RunningDeer";
 import WinterTreeline from "./components/WinterTreeline";
-import Weather from "./components/Weather";
 
 const queryClient = new QueryClient();
 
@@ -19,10 +18,8 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      {/* Snow — blizzard over the hero that hands off to calm snow on scroll. Owns all weather.
-          Dialed down from the defaults (coverage 0.6 / snowDensity 1.5 / calmDensity 1):
-          lower coverage = lighter hero haze + blur; lower densities = fewer flakes → smoother. */}
-      <Weather coverage={0.4} snowDensity={0.9} calmDensity={0.6} />
+      {/* Snow now lives inside each page (Index/Gallery) between the sky and the
+          content so it falls BEHIND the photos. See those files for the mount. */}
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<Index />} />
