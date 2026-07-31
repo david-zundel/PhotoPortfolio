@@ -190,9 +190,12 @@ function useScrollProgress(fadeDistance: number) {
   useEffect(() => {
     const read = () => {
       raf.current = 0;
-      // Quantised to 2% steps: ~50 repaints over the fade instead of one per
-      // scroll event, which is what makes the handoff feel smooth.
-      const raw = Math.round(Math.min(1, Math.max(0, window.scrollY / fadeDistance)) * 50) / 50;
+      // Quantised to ~12 coarse steps. A smooth, high-frequency trackpad scroll
+      // then triggers ~12 re-renders across the fade instead of ~50 — the storm
+      // layers (esp. the container holding every flake) re-composite far fewer
+      // times. CSS opacity transitions on those layers glide between the steps,
+      // so the handoff still looks smooth regardless of scroll-event frequency.
+      const raw = Math.round(Math.min(1, Math.max(0, window.scrollY / fadeDistance)) * 12) / 12;
       setQ((prev) => Math.max(prev, raw));
     };
     const onScroll = () => {
@@ -448,6 +451,9 @@ export default function Weather({
   const stormGone = cleared >= 2;
   // Calm snow crossfades in over the first 70% of the fade and then stays.
   const calmOpacity = Math.min(1, q / 0.7);
+  // Every scroll-driven opacity glides on the compositor between the coarse
+  // scroll steps, so the crossfade stays smooth without per-event repaints.
+  const fade = "opacity 0.45s linear";
 
   return (
     <div
@@ -469,6 +475,7 @@ export default function Weather({
           background: "linear-gradient(180deg, rgba(108,128,158,0.46), rgba(146,165,188,0.26) 60%)",
           opacity: Math.min(1, p.gloom * coverage) * ramp(0.62),
           willChange: "opacity",
+          transition: fade,
         }}
       />
       {/* Atmospheric backdrop-blur removed for scroll performance: a full-viewport
@@ -480,26 +487,26 @@ export default function Weather({
           Skipped entirely on weak devices: 9 large blurred, animated divs are the
           single most expensive part of the storm on a low-end GPU. */}
       {cleared < 1 && !lowPower && (
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: Math.min(1, p.cloud * coverage) * ramp(0.8), willChange: "opacity" }}>
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: Math.min(1, p.cloud * coverage) * ramp(0.8), willChange: "opacity", transition: fade }}>
           {clouds}
         </div>
       )}
       {/* flat wash — outer div owns the scroll fade, inner one breathes.
           Do NOT merge these: a running opacity animation beats an inline opacity. */}
-      <div style={{ position: "absolute", inset: 0, opacity: p.wash * coverage * ramp(0.65), willChange: "opacity" }}>
+      <div style={{ position: "absolute", inset: 0, opacity: p.wash * coverage * ramp(0.65), willChange: "opacity", transition: fade }}>
         <div style={{ position: "absolute", inset: 0, background: "#fff", animation: reduced ? undefined : "bz-breathe 13s ease-in-out infinite" }} />
       </div>
       {/* snow + squalls (squalls are blurred gradient sweeps — skipped on weak devices) */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity" }}>{flakes}</div>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity", transition: fade }}>{flakes}</div>
       {!lowPower && (
-        <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity" }}>{squalls}</div>
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity", transition: fade }}>{squalls}</div>
       )}
       {/* edge glow — snow packing into the corners of frame */}
-      <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 130px 55px rgba(255,255,255,0.85)", opacity: coverage * ramp(0.6), willChange: "opacity" }} />
+      <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 130px 55px rgba(255,255,255,0.85)", opacity: coverage * ramp(0.6), willChange: "opacity", transition: fade }} />
         </>
       )}
       {/* calm snow — the resting weather, never unmounts */}
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: calmOpacity, willChange: "opacity" }}>{calmFlakes}</div>
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: calmOpacity, willChange: "opacity", transition: fade }}>{calmFlakes}</div>
     </div>
   );
 }

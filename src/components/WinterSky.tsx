@@ -1,6 +1,7 @@
 // Soft color washes scattered down the whole (scrolling) page. [top, left, size, color]
 const BLOBS: Array<[string, string, string, string]> = [
-  ["8vh", "6vw", "42vw", "rgba(240,206,190,.85)"],
+  // (removed the top-left peachy wash — it read as a distracting bright orb
+  //  beside the name in the hero)
   ["4vh", "62vw", "40vw", "rgba(198,196,214,.75)"],
   ["46vh", "70vw", "34vw", "rgba(244,224,206,.7)"],
   ["70vh", "-4vw", "36vw", "rgba(200,214,230,.7)"],

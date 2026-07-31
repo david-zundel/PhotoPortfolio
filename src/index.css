@@ -166,7 +166,7 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(55% 20% at 20% 6%, rgba(255,248,220,.8), transparent 60%),
+    radial-gradient(55% 20% at 20% 6%, rgba(255,248,220,.35), transparent 60%),
     radial-gradient(50% 16% at 82% 14%, rgba(190,196,230,.5), transparent 62%),
     radial-gradient(60% 16% at 32% 42%, rgba(140,198,238,.62), transparent 62%),
     radial-gradient(56% 15% at 74% 62%, rgba(255,230,214,.5), transparent 60%),
