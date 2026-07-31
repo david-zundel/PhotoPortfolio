@@ -158,6 +158,28 @@ function useReducedMotion() {
 }
 
 /**
+ * Coarse "is this a weak device?" check — a touch/small screen, few CPU cores,
+ * or low reported memory. On these we render far fewer flakes and skip the
+ * expensive blurred cloud/squall layers so the snow stays smooth. Evaluated
+ * once on mount (these don't change during a session).
+ */
+function useLowPower() {
+  // Evaluated synchronously on first render so weak devices never build the full
+  // flake count and then throw half of it away.
+  const [low] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const nav = navigator as any;
+    const cores = nav.hardwareConcurrency || 8;
+    const mem = nav.deviceMemory || 8;
+    const smallOrTouch =
+      window.matchMedia("(max-width: 820px)").matches ||
+      window.matchMedia("(pointer: coarse)").matches;
+    return cores <= 4 || mem <= 4 || smallOrTouch;
+  });
+  return low;
+}
+
+/**
  * Scroll progress 0→1 over `fadeDistance`, rAF-throttled and MONOTONIC:
  * progress only ever advances, so scrolling back up to the hero keeps clear
  * skies. The storm is a once-per-load first impression; it returns on reload.
@@ -249,6 +271,7 @@ export default function Weather({
 }: WeatherProps) {
   useKeyframes();
   const reduced = useReducedMotion();
+  const lowPower = useLowPower();
   const q = useScrollProgress(fadeDistance);
   const cleared = useTeardown(q);
   const vh = useViewportHeight();
@@ -298,8 +321,9 @@ export default function Weather({
           // continuous rotation. The old spin read as the flakes tumbling "upward".
           st.rotate = `${Math.round(b * 90 - 45)}deg`;
           // Only the biggest get a shadow — drop-shadow on hundreds of animated
-          // elements is the one thing here that actually costs frames.
-          if (a > 0.72) st.filter = "drop-shadow(0 1px 1.5px rgba(112,142,176,0.5))";
+          // elements is the one thing here that actually costs frames. Skipped
+          // entirely on weak devices.
+          if (a > 0.72 && !lowPower) st.filter = "drop-shadow(0 1px 1.5px rgba(112,142,176,0.5))";
         } else if (layer.kind === "glyph") {
           st.background = "none";
           st.color = "rgba(255,255,255,0.85)";
@@ -310,7 +334,7 @@ export default function Weather({
           st.width = `${((2.4 + a * 1.8) * scale).toFixed(1)}px`;
           st.height = `${((15 + a * 14) * scale).toFixed(1)}px`;
           st.borderRadius = "40%";
-          st.filter = `blur(${(1.2 + a * 0.9).toFixed(1)}px)`;
+          if (!lowPower) st.filter = `blur(${(1.2 + a * 0.9).toFixed(1)}px)`;
           st.rotate = `${tilt.toFixed(1)}deg`;
         } else {
           const base = layer.kind === "dust" ? 1 + a * 1.2 : layer.kind === "far" ? 1.8 + a * 2.2 : 3.4 + a * 3;
@@ -318,9 +342,13 @@ export default function Weather({
           st.width = s;
           st.height = s;
           st.borderRadius = "50%";
-          if (layer.kind === "far") st.filter = "blur(0.5px)";
-          else if (layer.kind === "dust") st.filter = "blur(0.8px)";
-          else st.boxShadow = "0 0 4px rgba(255,255,255,0.6)";
+          // Per-flake blur/shadow are dropped on weak devices — cheap on desktop,
+          // but a real cost across ~100 animated elements on a low-end GPU.
+          if (!lowPower) {
+            if (layer.kind === "far") st.filter = "blur(0.5px)";
+            else if (layer.kind === "dust") st.filter = "blur(0.8px)";
+            else st.boxShadow = "0 0 4px rgba(255,255,255,0.6)";
+          }
         }
 
         if (reduced) {
@@ -352,14 +380,17 @@ export default function Weather({
     return out;
   };
 
+  // Weak devices get roughly half the flakes — fewer animated compositor layers.
+  const perfScale = lowPower ? 0.5 : 1;
+
   const flakes = useMemo(
-    () => buildField(LAYERS, p.dens * snowDensity * (reduced ? 0.5 : 1), WIND, "b"),
-    [p.dens, snowDensity, reduced, travel]
+    () => buildField(LAYERS, p.dens * snowDensity * perfScale * (reduced ? 0.5 : 1), WIND, "b"),
+    [p.dens, snowDensity, reduced, travel, perfScale]
   );
 
   const calmFlakes = useMemo(
-    () => buildField(CALM_LAYERS, calmDensity * (reduced ? 0.5 : 1), 1, "c"),
-    [calmDensity, reduced, travel]
+    () => buildField(CALM_LAYERS, calmDensity * perfScale * (reduced ? 0.5 : 1), 1, "c"),
+    [calmDensity, reduced, travel, perfScale]
   );
 
   const clouds = useMemo(
@@ -445,8 +476,10 @@ export default function Weather({
           layer on every scroll frame, which read as a whole-page "refresh"/pause
           while scrolling. The storm still reads through the gloom + wash + cloud
           layers below. */}
-      {/* drifting cloud masses — dropped on the first idle after they hit 0 */}
-      {cleared < 1 && (
+      {/* drifting cloud masses — dropped on the first idle after they hit 0.
+          Skipped entirely on weak devices: 9 large blurred, animated divs are the
+          single most expensive part of the storm on a low-end GPU. */}
+      {cleared < 1 && !lowPower && (
         <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: Math.min(1, p.cloud * coverage) * ramp(0.8), willChange: "opacity" }}>
           {clouds}
         </div>
@@ -456,9 +489,11 @@ export default function Weather({
       <div style={{ position: "absolute", inset: 0, opacity: p.wash * coverage * ramp(0.65), willChange: "opacity" }}>
         <div style={{ position: "absolute", inset: 0, background: "#fff", animation: reduced ? undefined : "bz-breathe 13s ease-in-out infinite" }} />
       </div>
-      {/* snow + squalls */}
+      {/* snow + squalls (squalls are blurred gradient sweeps — skipped on weak devices) */}
       <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity" }}>{flakes}</div>
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity" }}>{squalls}</div>
+      {!lowPower && (
+        <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: 1 - q, willChange: "opacity" }}>{squalls}</div>
+      )}
       {/* edge glow — snow packing into the corners of frame */}
       <div style={{ position: "absolute", inset: 0, boxShadow: "inset 0 0 130px 55px rgba(255,255,255,0.85)", opacity: coverage * ramp(0.6), willChange: "opacity" }} />
         </>
