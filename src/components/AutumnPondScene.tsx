@@ -262,10 +262,7 @@ export default function AutumnPondScene({
         zIndex,
         pointerEvents: "none",
         overflow: "hidden",
-        // Fills the side margins on wide screens: sky at top → foliage green at
-        // the bottom, so the stage's fit-height letterboxing reads as a border
-        // that continues the scene rather than flat bars.
-        background: `linear-gradient(180deg, ${p.skyTop}, ${p.skyMid} 32%, ${p.skyLow} 52%, #24331d)`,
+        background: p.skyLow,
         contain: "paint",
       }}
     >
@@ -391,14 +388,13 @@ export default function AutumnPondScene({
       <div
         style={{
           position: "absolute",
-          bottom: 0,
+          top: "50%",
           left: "50%",
-          transform: "translateX(-50%)",
-          // Fit the full 16:9 stage to viewport HEIGHT so the treetops are never
-          // cropped. On screens wider than 16:9 this leaves side margins, which the
-          // root fills with a sky→foliage gradient so they read as a border. On
-          // taller-than-16:9 screens it still covers the width (cropping the sides).
-          width: "calc(100vh * 16 / 9)",
+          transform: "translate(-50%, -50%)",
+          // Full-bleed cover (no side margins), but centered so the overflow on a
+          // wider-than-16:9 screen splits top+bottom instead of eating the whole
+          // treetop from the top. Keeps the trees visible while staying edge-to-edge.
+          width: "max(100%, calc(100vh * 16 / 9))",
         }}
         data-ap-noink={ink ? undefined : ""}
       >
