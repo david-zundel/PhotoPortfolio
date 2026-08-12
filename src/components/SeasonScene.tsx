@@ -19,8 +19,12 @@ export const SeasonScene = () => {
   const phase = usePondPhase();
 
   if (season === "autumn") {
+    // zIndex -1 (NOT 0): the page wrapper on Index/Gallery has `isolate`, so its
+    // inner z-10 content can't rise above a z-0 fixed sibling that paints later
+    // in the DOM — the pond would cover the whole site. At -1 the pond sits below
+    // all content while still showing above the body background. Do not "tidy" to 0.
     return (
-      <AutumnPondScene phase={phase} grading="faithful" zIndex={0} />
+      <AutumnPondScene phase={phase} grading="faithful" zIndex={-1} />
     );
   }
 
