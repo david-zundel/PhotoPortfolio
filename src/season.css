@@ -1,0 +1,233 @@
+/* ===================== Autumn theme =====================
+ * Import once at the end of index.css:
+ *   @import "./season.css";
+ *
+ * Scoped to html[data-season="autumn"], which season.ts sets on the document
+ * element. Winter is untouched. season.ts also publishes html[data-phase],
+ * which is what the light-dependent rules key off.
+ *
+ * The tokens do most of the work: Tailwind resolves bg-background, bg-card,
+ * bg-muted, text-foreground, text-muted-foreground and border-border through
+ * these variables, so retuning them retunes the navbar, cards, borders and all
+ * copy without touching a component.
+ *
+ * Palette is lifted off the scene: pond-shadow green, bark rust, lamp brass,
+ * warm stone, foliage sage.
+ */
+
+html[data-season="autumn"] {
+  --background: 150 18% 12%;
+  --foreground: 40 30% 92%;
+
+  --card: 150 16% 17%;
+  --card-foreground: 40 30% 92%;
+
+  --popover: 150 18% 14%;
+  --popover-foreground: 40 30% 92%;
+
+  /* Lamp brass — the one warm light in the scene at every phase */
+  --primary: 32 62% 52%;
+  --primary-foreground: 40 40% 96%;
+
+  /* Foliage sage */
+  --secondary: 78 30% 40%;
+  --secondary-foreground: 40 30% 92%;
+
+  --muted: 150 12% 22%;
+  --muted-foreground: 40 18% 76%;
+
+  --accent: 38 68% 60%;
+  --accent-foreground: 150 20% 12%;
+
+  --border: 40 10% 32%;
+  --input: 40 10% 32%;
+  --ring: 32 62% 52%;
+
+  /* The six "pastel" hues, retuned autumn. .country-label and .pastel-divider
+     read straight from these, so both follow with no further rules. */
+  --pastel-coral: 18 58% 56%;
+  --pastel-mint: 88 26% 48%;
+  --pastel-lavender: 285 22% 58%;
+  --pastel-peach: 30 68% 62%;
+  --pastel-sky: 205 34% 56%;
+  --pastel-lemon: 44 66% 60%;
+}
+
+/* ===================== Type, keyed to the light =====================
+ * The pond is a fixed backdrop with no veil, so EVERY section sits on the lit
+ * scene. All type stays LIGHT at every phase and takes its tint from the sky
+ * it's sitting on — dawn violet, midday cool white, sunset peach, night pale
+ * blue — rather than inverting to dark ink on the bright phases.
+ *
+ * What carries it on a bright sky is the shadow, not the fill: a tight 1-2px
+ * edge plus two soft spreads, which reads as a faint halo behind the letters
+ * instead of a visible plate. --shade is that shadow's colour, so each phase
+ * sets its tint and its shade once and every rule below inherits both.
+ *
+ * Card interiors are exempt: --card stays dark at every phase and carries its
+ * own --card-foreground, so text on cards never inverts with the sky. */
+
+html[data-season="autumn"] {
+  --ink: #f7f0e2;
+  --shade: 16, 24, 18;
+}
+html[data-season="autumn"][data-phase="dawn"]      { --ink: #f2ecfb; --shade: 26, 22, 48; }
+html[data-season="autumn"][data-phase="sunrise"]   { --ink: #fdf6ea; --shade: 24, 34, 44; }
+html[data-season="autumn"][data-phase="afternoon"] { --ink: #f8fcff; --shade: 14, 30, 44; }
+html[data-season="autumn"][data-phase="sunset"]    { --ink: #fff3e4; --shade: 40, 18, 8; }
+html[data-season="autumn"][data-phase="evening"]   { --ink: #fdeae2; --shade: 44, 16, 22; }
+html[data-season="autumn"][data-phase="night"]     { --ink: #eef3fd; --shade: 8, 14, 32; }
+
+html[data-season="autumn"] .winter-name,
+html[data-season="autumn"] .section-title-winter {
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  text-shadow:
+    0 1px 2px rgba(var(--shade), 0.55),
+    0 4px 16px rgba(var(--shade), 0.5),
+    0 10px 44px rgba(var(--shade), 0.42);
+  transition: color 600ms ease, text-shadow 600ms ease;
+}
+
+/* Secondary copy is smaller, so it needs a tighter, denser shadow to hold its
+   edges — a wide soft spread just greys it out at this size. */
+html[data-season="autumn"] .text-muted-foreground,
+html[data-season="autumn"] .eyebrow,
+html[data-season="autumn"] .lede,
+html[data-season="autumn"] .slide-caption p,
+html[data-season="autumn"] .copyright {
+  color: rgba(255, 255, 255, 0.88);
+  text-shadow:
+    0 1px 2px rgba(var(--shade), 0.62),
+    0 2px 10px rgba(var(--shade), 0.5);
+  transition: color 600ms ease, text-shadow 600ms ease;
+}
+
+/* Text sitting ON a card keeps the dark-card treatment at every phase. */
+html[data-season="autumn"] .bg-card .text-muted-foreground,
+html[data-season="autumn"] .bg-muted .text-muted-foreground {
+  color: hsl(40 18% 76%);
+  text-shadow: none;
+}
+
+/* ---- Photo captions ----
+ * Landscape captions carry an inline per-photo gradient from the text_gradient
+ * column, so they can't be replaced from CSS — and shouldn't be: the colour is
+ * part of each photo's identity. Each is instead pushed into a readable range
+ * for the current light. drop-shadow rather than text-shadow because the text
+ * is gradient-clipped and transparent-filled.
+ *
+ * Matched on the inline background-image so it hits ONLY those. Portrait
+ * captions are solid text-foreground/90 and would blow out to white. */
+html[data-season="autumn"] .slide-caption h3[style*="background-image"] {
+  filter:
+    brightness(1.55) saturate(1.08)
+    drop-shadow(0 1px 2px rgba(var(--shade), 0.6))
+    drop-shadow(0 3px 14px rgba(var(--shade), 0.5));
+}
+
+/* Portrait captions are solid type — they follow --foreground and just need
+   the matching halo. */
+html[data-season="autumn"] .slide-caption h3:not([style*="background-image"]) {
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  text-shadow:
+    0 1px 2px rgba(var(--shade), 0.6),
+    0 3px 14px rgba(var(--shade), 0.5);
+}
+
+html[data-season="autumn"] .slide-caption h3,
+html[data-season="autumn"] .section-title-winter {
+  text-wrap: pretty;
+}
+
+/* ===================== Bars that sit on the sky =====================
+ * The Index navbar and the Gallery filter row both float on raw sky, so a
+ * single frosted colour either fights the daylight or disappears at night.
+ * Each phase takes the sky's own cast; the pills inherit their colour.
+ *
+ * nav > div covers Navbar.tsx as written. Add class="sky-bar" to the Gallery
+ * filter row (it isn't inside a <nav>) — and prefer that class if you ever
+ * restructure the navbar. */
+
+html[data-season="autumn"] nav > div,
+html[data-season="autumn"] .sky-bar {
+  transition: background 600ms ease, border-color 600ms ease, color 600ms ease;
+}
+html[data-season="autumn"] .sky-bar {
+  border-radius: 999px;
+  padding: 0.375rem 0.5rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid;
+  width: max-content;
+}
+html[data-season="autumn"][data-phase="dawn"] nav > div,
+html[data-season="autumn"][data-phase="dawn"] .sky-bar {
+  background: rgba(58, 54, 92, 0.62); color: #eae6f5; border-color: rgba(230, 225, 245, 0.22);
+}
+html[data-season="autumn"][data-phase="sunrise"] nav > div,
+html[data-season="autumn"][data-phase="sunrise"] .sky-bar {
+  background: rgba(196, 222, 240, 0.72); color: #26323d; border-color: rgba(255, 255, 255, 0.5);
+}
+html[data-season="autumn"][data-phase="afternoon"] nav > div,
+html[data-season="autumn"][data-phase="afternoon"] .sky-bar {
+  background: rgba(178, 216, 242, 0.72); color: #1e2f3d; border-color: rgba(255, 255, 255, 0.55);
+}
+html[data-season="autumn"][data-phase="sunset"] nav > div,
+html[data-season="autumn"][data-phase="sunset"] .sky-bar {
+  background: rgba(150, 74, 52, 0.62); color: #ffe9d6; border-color: rgba(255, 214, 180, 0.28);
+}
+html[data-season="autumn"][data-phase="evening"] nav > div,
+html[data-season="autumn"][data-phase="evening"] .sky-bar {
+  background: rgba(104, 52, 58, 0.64); color: #f7dcd2; border-color: rgba(255, 200, 185, 0.24);
+}
+html[data-season="autumn"][data-phase="night"] nav > div,
+html[data-season="autumn"][data-phase="night"] .sky-bar {
+  background: rgba(20, 30, 58, 0.66); color: #dde6f7; border-color: rgba(190, 210, 255, 0.22);
+}
+
+/* Pills inside a bar take the bar's colour, not the page's type colour. */
+html[data-season="autumn"] nav > div .nav-pill,
+html[data-season="autumn"] .sky-bar .nav-pill {
+  color: inherit;
+  text-shadow: none;
+}
+
+/* Daylight pills need a dark hover, not the warm one that reads on night bars. */
+html[data-season="autumn"][data-phase="sunrise"] .nav-pill:hover,
+html[data-season="autumn"][data-phase="afternoon"] .nav-pill:hover {
+  background: rgba(20, 40, 55, 0.12);
+}
+
+/* .nav-pill.active hardcodes hsl(210 50% 42%) — a winter blue. */
+html[data-season="autumn"] .nav-pill.active {
+  background: hsl(32 54% 40%);
+  color: #fbf5e8;
+  text-shadow: none;
+}
+html[data-season="autumn"] .nav-pill:hover {
+  background: hsl(var(--pastel-lemon) / 0.16);
+}
+
+/* ---- Carousel controls ----
+ * These hardcode near-white and slate for a light page. */
+html[data-season="autumn"] .carousel-btn {
+  background: rgba(28, 40, 33, 0.72);
+  color: #f2ead9;
+  border-color: rgba(244, 237, 223, 0.22);
+  box-shadow: 0 6px 22px rgba(10, 16, 12, 0.45);
+}
+html[data-season="autumn"] .carousel-btn:hover {
+  background: rgba(38, 54, 44, 0.9);
+  box-shadow: 0 8px 28px rgba(10, 16, 12, 0.55);
+}
+html[data-season="autumn"] .carousel-dot {
+  background: rgba(244, 237, 223, 0.34);
+}
+html[data-season="autumn"] .carousel-dot:hover {
+  background: rgba(244, 237, 223, 0.6);
+}
+html[data-season="autumn"] .carousel-dot.is-active {
+  background: #e8c98a;
+}

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
+import { SeasonToggle } from "@/components/SeasonScene";
 
 const sections = ["Home", "Landscapes", "Portraits", "Gallery", "Contact"];
 
@@ -44,6 +45,7 @@ const Navbar = () => {
             {s}
           </button>
         ))}
+        <SeasonToggle />
       </div>
     </motion.nav>
   );

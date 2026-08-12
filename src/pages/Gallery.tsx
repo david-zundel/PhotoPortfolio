@@ -6,8 +6,7 @@ import Lightbox, { LightboxImage } from "@/components/Lightbox";
 import ProgressiveImage from "@/components/ProgressiveImage";
 import { supabase } from "@/integrations/supabase/client";
 import { getPreviewSrcSet } from "@/lib/image-utils";
-import WinterSky from "@/components/WinterSky";
-import Weather from "@/components/Weather";
+import { SeasonSky } from "@/components/SeasonScene";
 
 type FilterType = "all" | "landscapes" | "portraits";
 
@@ -51,10 +50,10 @@ const Gallery = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative isolate overflow-hidden">
-      <WinterSky />
-      {/* Snow between the sky (z-0) and content (z-10) — falls behind the photos. */}
-      <Weather coverage={0.25} snowDensity={0.7} calmDensity={0.45} zIndex={5} />
+    <div className="min-h-screen relative isolate overflow-hidden">
+      {/* Winter renders WinterSky + snow; autumn renders nothing (pond is the
+          app-level backdrop). bg-background omitted so the fixed z-0 pond shows. */}
+      <SeasonSky />
 
       <div className="relative z-10">
         <div className="pt-12 pb-8 px-6">
@@ -80,7 +79,7 @@ const Gallery = () => {
         </div>
 
         <div className="px-6 pb-12">
-          <div className="max-w-7xl mx-auto flex gap-2">
+          <div className="max-w-7xl mx-auto flex gap-2 sky-bar">
             {(["all", "landscapes", "portraits"] as FilterType[]).map((f) => (
               <button
                 key={f}
