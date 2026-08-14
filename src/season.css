@@ -231,3 +231,21 @@ html[data-season="autumn"] .carousel-dot:hover {
 html[data-season="autumn"] .carousel-dot.is-active {
   background: #e8c98a;
 }
+
+/* ===================== Mobile: ground-walker speed =====================
+ * The turkey, deer and fox cross the stage a distance measured in vw. On a phone
+ * the stage is far wider than the viewport, so vw is a small pixel distance and
+ * they crawl. Shorten the crossing duration on small screens, and scale --gait
+ * (the leg cadence) by the SAME factor so the walk stays in step — changing the
+ * crossing without --gait makes them moonwalk. The ducks bob in place and are
+ * unaffected. Two steps so large phones/tablets get a milder speed-up. */
+@media (max-width: 820px) {
+  html[data-season="autumn"] [data-scene="pondTurkey"] { animation-duration: 13.3s !important; --gait: 0.36s !important; }
+  html[data-season="autumn"] [data-scene="pondDeer"]   { animation-duration: 30s   !important; --gait: 0.57s !important; }
+  html[data-season="autumn"] [data-scene="pondFox"]    { animation-duration: 30s   !important; --gait: 0.56s !important; }
+}
+@media (max-width: 480px) {
+  html[data-season="autumn"] [data-scene="pondTurkey"] { animation-duration: 9.3s !important; --gait: 0.25s !important; }
+  html[data-season="autumn"] [data-scene="pondDeer"]   { animation-duration: 21s  !important; --gait: 0.40s !important; }
+  html[data-season="autumn"] [data-scene="pondFox"]    { animation-duration: 21s  !important; --gait: 0.39s !important; }
+}
