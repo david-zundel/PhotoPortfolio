@@ -232,20 +232,37 @@ html[data-season="autumn"] .carousel-dot.is-active {
   background: #e8c98a;
 }
 
-/* ===================== Mobile: ground-walker speed =====================
- * The turkey, deer and fox cross the stage a distance measured in vw. On a phone
- * the stage is far wider than the viewport, so vw is a small pixel distance and
- * they crawl. Shorten the crossing duration on small screens, and scale --gait
- * (the leg cadence) by the SAME factor so the walk stays in step — changing the
- * crossing without --gait makes them moonwalk. The ducks bob in place and are
- * unaffected. Two steps so large phones/tablets get a milder speed-up. */
-@media (max-width: 820px) {
-  html[data-season="autumn"] [data-scene="pondTurkey"] { animation-duration: 13.3s !important; --gait: 0.36s !important; }
-  html[data-season="autumn"] [data-scene="pondDeer"]   { animation-duration: 30s   !important; --gait: 0.57s !important; }
-  html[data-season="autumn"] [data-scene="pondFox"]    { animation-duration: 30s   !important; --gait: 0.56s !important; }
+/* ===================== Ground-walker travel distance =====================
+ * The turkey, deer and fox cross using a distance measured in vw (--run, and
+ * --back for the off-screen return). That only works while the stage is exactly
+ * as wide as the viewport. The stage is actually
+ *     max(100vw, 100vh * 16/9)
+ * so on any window NARROWER than 16:9 — every phone, and tall desktop windows —
+ * the stage is much wider than the viewport while vw stays small. Two bugs fall
+ * out of that: the animals cover very little ground (they look like they're
+ * walking in place), and --run lands INSIDE the visible area, so the mid-cycle
+ * teleport that's meant to happen off-screen instead makes them vanish in view.
+ *
+ * Fix: express the distances as the same fractions of the STAGE width instead of
+ * the viewport. On wide screens max() resolves to 100vw and these are identical
+ * to the authored values, so desktop is unchanged; on narrow ones the animals
+ * scale their travel with the stage they're standing on.
+ *
+ * Note this needs NO duration or --gait change: distance and body size now scale
+ * together, so each animal covers the same number of body-lengths per second at
+ * any size and the authored gait stays in step. (Speeding up the duration alone
+ * is what caused the fast-legs/no-distance skitter.)
+ *
+ * The ducks (pondDrake) paddle in place and use neither variable. */
+html[data-season="autumn"] [data-ap-root] {
+  --ap-stage-w: max(100vw, 100vh * 16 / 9);
 }
-@media (max-width: 480px) {
-  html[data-season="autumn"] [data-scene="pondTurkey"] { animation-duration: 9.3s !important; --gait: 0.25s !important; }
-  html[data-season="autumn"] [data-scene="pondDeer"]   { animation-duration: 21s  !important; --gait: 0.40s !important; }
-  html[data-season="autumn"] [data-scene="pondFox"]    { animation-duration: 21s  !important; --gait: 0.39s !important; }
+html[data-season="autumn"] [data-scene="pondTurkey"] {
+  --run: calc(var(--ap-stage-w) * 0.99) !important;
+  --back: calc(var(--ap-stage-w) * -0.22) !important;
+}
+html[data-season="autumn"] [data-scene="pondDeer"],
+html[data-season="autumn"] [data-scene="pondFox"] {
+  --run: calc(var(--ap-stage-w) * 0.92) !important;
+  --back: calc(var(--ap-stage-w) * -0.227) !important;
 }
