@@ -1,22 +1,20 @@
+import { cloudinaryTransformUrl, isCloudinaryUrl } from "@/lib/cloudinary";
+
 /**
- * Generate a Supabase Storage thumbnail URL using render/image transform.
- * Falls back to original src if not a Supabase storage URL.
+ * Build a resized preview URL for a stored photo.
+ *
+ * - Cloudinary URLs get an on-the-fly transformation (c_limit,w_<width>,q_<quality>,f_auto),
+ *   so one uploaded original serves every size the UI asks for.
+ * - Anything else (e.g. photos still in Supabase Storage before migration) is returned
+ *   unchanged. Supabase's render/image transforms are a Pro-plan feature, so on the free
+ *   plan the original is the only URL that actually loads.
  */
 export const getPreviewUrl = (src: string, width = 600, quality = 60): string => {
-  try {
-    const url = new URL(src);
-    // Supabase storage URL pattern: /storage/v1/object/public/{bucket}/{path}
-    if (url.pathname.includes("/storage/v1/object/public/")) {
-      const pathParts = url.pathname.split("/storage/v1/object/public/");
-      if (pathParts.length === 2) {
-        const bucketAndPath = pathParts[1];
-        return `${url.origin}/storage/v1/render/image/public/${bucketAndPath}?width=${width}&quality=${quality}&resize=contain`;
-      }
-    }
-  } catch {}
+  if (isCloudinaryUrl(src)) return cloudinaryTransformUrl(src, { width, quality });
   return src;
 };
 
+/** Tiny, heavily compressed placeholder shown while the full image loads. */
 export const getThumbUrl = (src: string): string => getPreviewUrl(src, 60, 20);
 
 export const getPreviewSrcSet = (
@@ -25,6 +23,8 @@ export const getPreviewSrcSet = (
   quality = 75
 ): string | undefined => {
   if (widths.length === 0) return undefined;
+  // A srcset of identical URLs is pointless for non-Cloudinary sources.
+  if (!isCloudinaryUrl(src)) return undefined;
 
   const candidates = widths
     .map((width) => `${getPreviewUrl(src, width, quality)} ${width}w`)

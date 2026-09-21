@@ -11,7 +11,8 @@ import { SeasonSky } from "@/components/SeasonScene";
 type FilterType = "all" | "landscapes" | "portraits";
 
 const GALLERY_IMAGE_SIZES = "(min-width: 1280px) 30vw, (min-width: 640px) 46vw, 92vw";
-const GALLERY_IMAGE_WIDTHS = [360, 540, 720, 960, 1280] as const;
+const GALLERY_IMAGE_WIDTHS = [480, 720, 960, 1280, 1600, 1920, 2400] as const;
+const GALLERY_IMAGE_QUALITY = 88;
 
 const Gallery = () => {
   const [filter, setFilter] = useState<FilterType>("all");
@@ -105,13 +106,13 @@ const Gallery = () => {
                     src={photo.src}
                     alt={photo.alt || ""}
                     className="w-full h-auto block transition-transform duration-500 group-hover:scale-105"
-                    srcSet={getPreviewSrcSet(photo.src, GALLERY_IMAGE_WIDTHS, 78)}
+                    srcSet={getPreviewSrcSet(photo.src, GALLERY_IMAGE_WIDTHS, GALLERY_IMAGE_QUALITY)}
                     sizes={GALLERY_IMAGE_SIZES}
                     loading={i < 3 ? "eager" : "lazy"}
                     fetchPriority={i < 2 ? "high" : "auto"}
                     draggable={false}
-                    previewWidth={960}
-                    previewQuality={78}
+                    previewWidth={1280}
+                    previewQuality={GALLERY_IMAGE_QUALITY}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-foreground/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none" />
                   {photo.location && (

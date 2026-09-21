@@ -1,5 +1,42 @@
 # Welcome to your Lovable project
 
+## Photo storage: Cloudinary
+
+Photos are compressed in the browser (2560 px long edge, JPEG ~86 %) and uploaded straight to
+[Cloudinary](https://cloudinary.com) from the admin page. Supabase still holds the `photos`
+table and admin login; it no longer stores image files.
+
+### One-time setup
+
+1. **Cloudinary account** (free plan is fine). From the dashboard note your **Cloud name**.
+2. **Unsigned upload preset**: Settings → Upload → Upload presets → *Add upload preset* →
+   Signing mode **Unsigned** → Save. Note the preset name.
+3. **Env vars** – add to `.env` locally and as repository secrets for the GitHub Pages deploy:
+   ```
+   VITE_CLOUDINARY_CLOUD_NAME=your-cloud-name
+   VITE_CLOUDINARY_UPLOAD_PRESET=your-unsigned-preset
+   ```
+4. **Database column** – run the migration in `supabase/migrations/20260920230000_add_public_id.sql`
+   (`supabase db push`, or paste it into the SQL editor in the Supabase dashboard).
+5. **Deletes (optional but recommended)** – deleting a Cloudinary file needs the API secret, so
+   the admin page calls a Supabase Edge Function:
+   ```sh
+   supabase functions deploy delete-cloudinary
+   supabase secrets set CLOUDINARY_CLOUD_NAME=… CLOUDINARY_API_KEY=… CLOUDINARY_API_SECRET=…
+   ```
+   Until it's deployed, deleting a photo removes the row but leaves the file in Cloudinary.
+
+### Migrating the photos already in Supabase Storage
+
+```sh
+cp .env.migrate.example .env.migrate   # fill in service-role key + Cloudinary API key/secret
+npm run migrate:cloudinary -- --dry-run          # shows before/after sizes, changes nothing
+npm run migrate:cloudinary                       # compress + upload + update rows
+npm run migrate:cloudinary -- --delete-supabase  # once the site looks right: free the Supabase space
+```
+
+`.env.migrate` is git-ignored — it holds secrets that must never reach the browser bundle.
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID

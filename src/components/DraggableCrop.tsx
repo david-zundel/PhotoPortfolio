@@ -93,7 +93,7 @@ const DraggableCrop = ({
 
   const imgStyle = useMemo(() => ({ objectPosition: `${cropX}% ${cropY}%` }), [cropX, cropY]);
   const previewSrcSet = useMemo(
-    () => getPreviewSrcSet(src, [360, 540, 720, 960, 1200, 1440], 74),
+    () => getPreviewSrcSet(src, [480, 720, 960, 1200, 1440, 1800, 2200], 88),
     [src]
   );
 
@@ -111,8 +111,8 @@ const DraggableCrop = ({
         style={imgStyle}
         srcSet={previewSrcSet}
         sizes={sizes}
-        previewWidth={priority ? 1200 : 900}
-        previewQuality={74}
+        previewWidth={priority ? 1600 : 1200}
+        previewQuality={88}
         fetchPriority={priority ? "high" : "auto"}
         loading={eager || priority ? "eager" : "lazy"}
         draggable={false}

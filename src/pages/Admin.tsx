@@ -8,10 +8,13 @@ import { Trash2, LogOut, Plus, Home, Star, Pencil } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import type { Session } from "@supabase/supabase-js";
+import { compressImage, formatBytes } from "@/lib/image-compress";
+import { isCloudinaryConfigured, isCloudinaryUrl, uploadToCloudinary } from "@/lib/cloudinary";
 
 type Photo = {
   id: string;
   src: string;
+  public_id: string | null;
   alt: string | null;
   location: string | null;
   category: string;
@@ -29,6 +32,7 @@ const Admin = () => {
   const [loading, setLoading] = useState(true);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
   const [alt, setAlt] = useState("");
   const [location, setLocation] = useState("");
   const [description, setDescription] = useState("");
@@ -80,47 +84,67 @@ const Admin = () => {
   const handleUpload = async () => {
     if (selectedFiles.length === 0) return;
 
-    setUploading(true);
-    for (const file of selectedFiles) {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${crypto.randomUUID()}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("photos")
-        .upload(filePath, file);
-
-      if (uploadError) {
-        toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
-        continue;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("photos")
-        .getPublicUrl(filePath);
-
-      const { error: insertError } = await supabase.from("photos").insert({
-        src: publicUrl,
-        alt: alt || file.name.split(".")[0],
-        location: location || null,
-        category,
-        homepage,
-        description: description || null,
-        subtitle: subtitle || null,
+    if (!isCloudinaryConfigured()) {
+      toast({
+        title: "Cloudinary not configured",
+        description: "Add VITE_CLOUDINARY_CLOUD_NAME and VITE_CLOUDINARY_UPLOAD_PRESET to .env and restart the dev server.",
+        variant: "destructive",
       });
+      return;
+    }
 
-      if (insertError) {
-        toast({ title: "Save failed", description: insertError.message, variant: "destructive" });
+    setUploading(true);
+    let uploaded = 0;
+    let originalBytes = 0;
+    let compressedBytes = 0;
+
+    for (const [i, file] of selectedFiles.entries()) {
+      const label = `${i + 1}/${selectedFiles.length} ${file.name}`;
+      try {
+        // 1. Shrink in the browser (2560px long edge, ~86% JPEG) so we never store raw camera files.
+        setUploadStatus(`Compressing ${label}…`);
+        const { blob, originalBytes: orig, compressedBytes: comp } = await compressImage(file);
+
+        // 2. Upload the compressed file straight to Cloudinary (unsigned preset, no secrets in the browser).
+        setUploadStatus(`Uploading ${label} (${formatBytes(comp)})…`);
+        const result = await uploadToCloudinary(blob, { publicId: crypto.randomUUID() });
+
+        // 3. Save the row exactly as before, plus public_id so we can delete it later.
+        const { error: insertError } = await supabase.from("photos").insert({
+          src: result.secure_url,
+          public_id: result.public_id,
+          alt: alt || file.name.split(".")[0],
+          location: location || null,
+          category,
+          homepage,
+          description: description || null,
+          subtitle: subtitle || null,
+        });
+        if (insertError) throw new Error(insertError.message);
+
+        uploaded += 1;
+        originalBytes += orig;
+        compressedBytes += comp;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        toast({ title: `Upload failed: ${file.name}`, description: message, variant: "destructive" });
       }
     }
 
     setUploading(false);
+    setUploadStatus("");
     setAlt("");
     setLocation("");
     setDescription("");
     setSubtitle("");
     setHomepage(false);
     setSelectedFiles([]);
-    toast({ title: `${selectedFiles.length} photo(s) uploaded!` });
+    if (uploaded > 0) {
+      toast({
+        title: `${uploaded} photo(s) uploaded!`,
+        description: `${formatBytes(originalBytes)} → ${formatBytes(compressedBytes)} after compression`,
+      });
+    }
     fetchPhotos();
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -135,15 +159,29 @@ const Admin = () => {
   };
 
   const handleDelete = async (photo: Photo) => {
-    const url = new URL(photo.src);
-    const pathParts = url.pathname.split("/storage/v1/object/public/photos/");
-    const filePath = pathParts[1];
+    let fileNote: string | undefined;
 
-    if (filePath) {
-      await supabase.storage.from("photos").remove([filePath]);
+    if (isCloudinaryUrl(photo.src)) {
+      // Deleting from Cloudinary needs the API secret, which must never be in the browser,
+      // so we go through the `delete-cloudinary` Supabase Edge Function (see supabase/functions).
+      // If it isn't deployed yet, the row is still removed and the file stays in Cloudinary.
+      if (photo.public_id) {
+        const { error } = await supabase.functions.invoke("delete-cloudinary", {
+          body: { public_id: photo.public_id },
+        });
+        if (error) fileNote = "Row removed, but the file is still in Cloudinary (delete function not deployed?).";
+      } else {
+        fileNote = "Row removed; no public_id stored, delete the file from Cloudinary manually.";
+      }
+    } else {
+      // Legacy Supabase Storage photo (pre-migration)
+      const url = new URL(photo.src);
+      const filePath = url.pathname.split("/storage/v1/object/public/photos/")[1];
+      if (filePath) await supabase.storage.from("photos").remove([filePath]);
     }
+
     await supabase.from("photos").delete().eq("id", photo.id);
-    toast({ title: "Photo deleted" });
+    toast({ title: "Photo deleted", description: fileNote });
     fetchPhotos();
   };
 
@@ -234,6 +272,9 @@ const Admin = () => {
             >
               {uploading ? "Uploading..." : "Upload"}
             </Button>
+            {uploadStatus && (
+              <span className="text-sm text-muted-foreground truncate">{uploadStatus}</span>
+            )}
           </div>
         </div>
 

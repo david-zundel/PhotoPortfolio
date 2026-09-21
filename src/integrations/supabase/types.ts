@@ -26,6 +26,7 @@ export type Database = {
           homepage: boolean
           id: string
           location: string | null
+          public_id: string | null
           sort_order: number | null
           src: string
           subtitle: string | null
@@ -42,6 +43,7 @@ export type Database = {
           homepage?: boolean
           id?: string
           location?: string | null
+          public_id?: string | null
           sort_order?: number | null
           src: string
           subtitle?: string | null
@@ -58,6 +60,7 @@ export type Database = {
           homepage?: boolean
           id?: string
           location?: string | null
+          public_id?: string | null
           sort_order?: number | null
           src?: string
           subtitle?: string | null

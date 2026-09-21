@@ -16,7 +16,7 @@ type PortraitData = {
   cropY: number;
 };
 
-const HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS = [360, 540, 720, 960, 1200, 1440] as const;
+const HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS = [480, 720, 960, 1200, 1440, 1800, 2200] as const;
 
 const getClosestPreviewWidth = (targetWidth: number) =>
   HOMEPAGE_PORTRAIT_PREVIEW_WIDTHS.find((width) => width >= targetWidth) ??
@@ -79,7 +79,7 @@ const PortraitsSection = () => {
         const preload = (photo: any) => {
           const img = new Image();
           img.onload = () => loadedCache.add(photo.src);
-          img.src = getPreviewUrl(photo.src, preloadWidth, 74);
+          img.src = getPreviewUrl(photo.src, preloadWidth, 88);
         };
 
         data.slice(0, 2).forEach(preload);
