@@ -57,33 +57,105 @@ html[data-season="cabin"] {
 }
 
 /* ===================== Type on the painting =====================
- * The scene is a fixed backdrop with no per-section plate, so EVERY section
- * sits directly on it. The painting runs from near-black spruce at the edges
- * to a near-white sunrise bloom over the river, and no single fill reads on
- * both — what carries light type across that range is the shadow, not the
- * colour: a tight 1-2px edge plus two soft spreads, which reads as a faint
- * halo behind the letters rather than as a visible plate.
+ * The scene is a fixed backdrop with no per-section plate and NO veil over the
+ * art, so EVERY section sits directly on the raw painting. It runs from
+ * near-black spruce at the edges to a near-white sunrise bloom over the river,
+ * and no single fill reads on both — what carries light type across that range
+ * is the shadow, not the colour.
  *
- * WinterCabinScene's own `veil` prop does the other half of this. Raise the
- * veil before darkening these shadows further — dimming the art costs less
- * legibility than thickening every glyph's halo.
+ * These halos are therefore doing all the legibility work on their own, which
+ * is why they're denser than the autumn set. Every one of them is CENTRED
+ * (0 0 blur) rather than offset downward: an offset shadow on a painting reads
+ * as a drop shadow sitting under the letters, which looks like a sticker. A
+ * centred dark glow reads instead as the letterform holding its own pocket of
+ * shade in the scene. Keep the y-offset at 0 if you retune these.
  *
  * Card interiors are exempt: --card stays dark and carries its own
  * --card-foreground, so text on cards never picks up a halo. */
 
 html[data-season="cabin"] {
-  --ink: #f4f8ff;
-  --shade: 8, 16, 30;
+  /* Warm off-white, not the cool white autumn uses — this valley's only light
+     is a sunrise, so cool type reads as a different photograph pasted on top. */
+  --ink: #f8f4ec;
+  --shade: 10, 16, 26;
+
+  /* Sunrise ramp, sampled off the baked painting: the sky's bright core is
+     #fef5bd, the bloom body #f6d9ab, the lamp highlight #ecbe60. */
+  --sun-hi: #fffdf6;
+  --sun-mid: #fff7e2;
+  --sun-low: #ffeac4;
+  --sun-deep: #ffdca6;
+
+  /* The glow around the name, borrowed from the lamp and the sun's bloom. */
+  --sun-glow: 255, 214, 148;
 }
 
-html[data-season="cabin"] .winter-name,
+/* Section titles: solid warm ivory, centred glow. */
 html[data-season="cabin"] .section-title-winter {
   color: var(--ink);
   -webkit-text-fill-color: var(--ink);
   text-shadow:
-    0 1px 2px rgba(var(--shade), 0.58),
-    0 4px 16px rgba(var(--shade), 0.55),
-    0 10px 44px rgba(var(--shade), 0.45);
+    0 0 2px rgba(var(--shade), 0.72),
+    0 0 9px rgba(var(--shade), 0.62),
+    0 0 30px rgba(var(--shade), 0.55),
+    0 0 64px rgba(var(--shade), 0.45);
+}
+
+/* The hero name takes the sunrise itself: near-white at the cap line falling
+   to lamp gold at the baseline, so it looks lit by the scene rather than laid
+   on it. Kept shallow on purpose — past --sun-deep it stops being a hint and
+   starts being a gold headline.
+   Gradient text is transparent-filled, so text-shadow would show THROUGH the
+   glyphs; the glow has to come from drop-shadow, which follows the rendered
+   alpha instead. Same reason the photo captions below use filter. */
+html[data-season="cabin"] .winter-name {
+  background-image: linear-gradient(
+    177deg,
+    var(--sun-hi) 0%,
+    var(--sun-mid) 40%,
+    var(--sun-low) 76%,
+    var(--sun-deep) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  /* Chained drop-shadows compound: each takes the PREVIOUS one's output as its
+     input, so order is stacking order. The two tight dark ones come first and
+     end up nearest the glyph, holding its edge against the near-white bloom
+     the name sits on — without them a warm glow on a warm background just
+     dissolves. The two warm blooms then radiate behind that, widest last.
+     Stop at ~40px: a third bloom at 88px was measured at 5-7 dropped frames
+     per scroll (worst frame ~300ms) for no visible gain, because that wide a
+     spread washes out against an already-bright sky. */
+  filter:
+    drop-shadow(0 0 1px rgba(var(--shade), 0.75))
+    drop-shadow(0 0 4px rgba(var(--shade), 0.5))
+    drop-shadow(0 0 14px rgba(var(--sun-glow), 0.62))
+    drop-shadow(0 0 40px rgba(var(--sun-glow), 0.5));
+  /* Breathes in step with the cabin window: same 7.4s ease-in-out and the same
+     45% trough as WinterCabinScene's wcEmber keyframe, so the name lifts and
+     dims with the lamp rather than on its own clock.
+     This animates OPACITY, not the filter. Animating the filter list was
+     measured at 50ms median frames (20fps) on a full-page scroll — every frame
+     re-rasterises the whole blur chain. Opacity on an already-layer-promoted
+     element is a compositor-only property: the filtered glyphs are rastered
+     once and just recomposited at a new alpha. Do not move the breathing back
+     into the filter. */
+  animation: wcNameBreathe 7.4s ease-in-out infinite;
+}
+
+/* No will-change here on purpose: an infinite animation already promotes the
+   element, so it would be redundant, and a permanent will-change on a scrolled
+   element is what caused the "everything repaints on scroll" problem before. */
+@keyframes wcNameBreathe {
+  0%, 100% { opacity: 1; }
+  45% { opacity: 0.88; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="cabin"] .winter-name { animation: none; }
 }
 
 /* Secondary copy is smaller, so it needs a tighter, denser shadow to hold its
@@ -93,10 +165,19 @@ html[data-season="cabin"] .eyebrow,
 html[data-season="cabin"] .lede,
 html[data-season="cabin"] .slide-caption p,
 html[data-season="cabin"] .copyright {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(252, 248, 240, 0.93);
+  /* Small type over the sunrise bloom is white-on-white, and a soft glow alone
+     just greys it. A 1px dark ring on all four sides gives the glyphs a hard
+     edge at any background brightness; two centred spreads behind it stop the
+     ring reading as an outline. All offsets are 0 — an offset here is exactly
+     what makes small copy look like it has a shadow under it. */
   text-shadow:
-    0 1px 2px rgba(var(--shade), 0.7),
-    0 2px 10px rgba(var(--shade), 0.58);
+    0 1px 1px rgba(var(--shade), 0.88),
+    0 -1px 1px rgba(var(--shade), 0.88),
+    1px 0 1px rgba(var(--shade), 0.88),
+    -1px 0 1px rgba(var(--shade), 0.88),
+    0 0 8px rgba(var(--shade), 0.7),
+    0 0 20px rgba(var(--shade), 0.52);
 }
 
 /* Text sitting ON a card keeps the dark-card treatment. */
@@ -116,16 +197,18 @@ html[data-season="cabin"] .bg-muted .text-muted-foreground {
 html[data-season="cabin"] .slide-caption h3[style*="background-image"] {
   filter:
     brightness(1.5) saturate(1.06)
-    drop-shadow(0 1px 2px rgba(var(--shade), 0.62))
-    drop-shadow(0 3px 14px rgba(var(--shade), 0.52));
+    drop-shadow(0 0 2px rgba(var(--shade), 0.75))
+    drop-shadow(0 0 8px rgba(var(--shade), 0.62))
+    drop-shadow(0 0 26px rgba(var(--shade), 0.5));
 }
 
 html[data-season="cabin"] .slide-caption h3:not([style*="background-image"]) {
   color: var(--ink);
   -webkit-text-fill-color: var(--ink);
   text-shadow:
-    0 1px 2px rgba(var(--shade), 0.62),
-    0 3px 14px rgba(var(--shade), 0.52);
+    0 0 2px rgba(var(--shade), 0.75),
+    0 0 8px rgba(var(--shade), 0.62),
+    0 0 26px rgba(var(--shade), 0.5);
 }
 
 html[data-season="cabin"] .slide-caption h3,

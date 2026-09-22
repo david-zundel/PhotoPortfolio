@@ -23,13 +23,19 @@ import cabin3200 from "@/assets/winter-cabin-3200.webp";
 const STYLE_ID = "wc-scene-css";
 
 /* The painting is 2:1. Cover-fitting it to a tall viewport blows it up a long
-   way sideways, so on portrait screens the crop is pulled toward the cabin
-   (x 78%) instead of the empty middle of the river. --wc-fx is the point of the
-   stage that gets pinned to the same point of the viewport. */
+   way sideways — a 390x844 phone shows barely a quarter of the width — so the
+   crop has to be aimed at something. --wc-fx is the point of the stage that
+   gets pinned to the same point of the viewport, so setting it to a feature's
+   x-fraction puts that feature on screen.
+   45% is the sunrise bloom: measured off the baked image, the sky's bright core
+   sits at 43% and the river's reflection peak at 43%, and the whole bloom spans
+   roughly 35-58%, which is almost exactly the slice a phone gets at this value.
+   The cabin (78%) is too far right to share the frame — at phone width the
+   visible slice is only ~23% of the painting, so it's the sun or the cabin, not
+   both, and the sun is the subject. */
 const CSS = `
 [data-wc-root] { --wc-fx: 50%; --wc-stage-w: max(100vw, 100vh * 2); }
-@media (max-aspect-ratio: 1/1)   { [data-wc-root] { --wc-fx: 74%; } }
-@media (max-aspect-ratio: 10/16) { [data-wc-root] { --wc-fx: 78%; } }
+@media (max-aspect-ratio: 1/1) { [data-wc-root] { --wc-fx: 45%; } }
 
 @keyframes wcFlakeDrop {
   0%   { transform: translate(0px, -5%);   opacity: 0; }
@@ -186,9 +192,10 @@ export type WinterCabinSceneProps = {
   /** Keep at -1. See the note at the top of this file. */
   zIndex?: number;
   /**
-   * How far the painting is dimmed so page type reads on top of it. The sunrise
-   * bloom over the river is near-white, and the site's copy is light, so without
-   * this the hero sits on its own value. 0 shows the raw painting.
+   * Dims the painting behind the page copy. Default 0 — the painting shows raw,
+   * which is the point of it. Legibility is carried entirely by the type halos
+   * in cabin.css instead. Raise this only if some future section turns out to
+   * sit badly on the sunrise bloom; even 0.15 is visible as a haze.
    */
   veil?: number;
   /** Bands of the 19-flake set to render. Default: 2, or 1 on low-power devices. */
@@ -198,7 +205,7 @@ export type WinterCabinSceneProps = {
 
 export default function WinterCabinScene({
   zIndex = -1,
-  veil = 0.34,
+  veil = 0,
   snowPasses,
   className,
 }: WinterCabinSceneProps) {
