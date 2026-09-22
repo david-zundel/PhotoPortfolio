@@ -8,7 +8,10 @@
 import { useSyncExternalStore, useEffect, useState } from "react";
 import type { PondPhase } from "@/components/AutumnPondScene";
 
-export type Season = "autumn" | "winter";
+export type Season = "autumn" | "winter" | "cabin";
+
+/** Toggle order. The nav button steps through this, wrapping at the end. */
+export const SEASONS: readonly Season[] = ["autumn", "winter", "cabin"] as const;
 
 const KEY = "dz:season";
 const DEFAULT: Season = "autumn";
@@ -19,11 +22,12 @@ const listeners = new Set<() => void>();
 function read(): Season {
   if (typeof localStorage === "undefined") return DEFAULT;
   const v = localStorage.getItem(KEY);
-  return v === "winter" || v === "autumn" ? v : DEFAULT;
+  return (SEASONS as readonly string[]).includes(v ?? "") ? (v as Season) : DEFAULT;
 }
 
 function publish() {
   // Lets plain CSS retune per season: html[data-season="autumn"] .winter-name {…}
+  // season.css keys off "autumn", cabin.css off "cabin"; "winter" is the base theme.
   document.documentElement.setAttribute("data-season", season);
   listeners.forEach((l) => l());
 }

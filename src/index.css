@@ -3,6 +3,9 @@
    all rules to be bundled. Every rule is scoped html[data-season="autumn"], so it
    still overrides the base tokens by specificity regardless of source position. */
 @import "./season.css";
+/* Winter Cabin Valley theme. Same rule as above: an @import has to precede all
+   rules or it never gets bundled. Scoped html[data-season="cabin"]. */
+@import "./cabin.css";
 
 @tailwind base;
 @tailwind components;

@@ -3,16 +3,18 @@ import WinterSky from "@/components/WinterSky";
 import WinterTreeline from "@/components/WinterTreeline";
 import RunningDeer from "@/components/RunningDeer";
 import AutumnPondScene from "@/components/AutumnPondScene";
-import { useSeason, usePondPhase, type Season } from "@/lib/season";
+import WinterCabinScene from "@/components/WinterCabinScene";
+import { useSeason, usePondPhase, SEASONS, type Season } from "@/lib/season";
 
 /**
  * The app-level scene layer. Mount ONCE in App.tsx, replacing the treeline and
  * the six deer.
  *
  * Winter keeps its original mount exactly: treeline and herd at z-20…33, in
- * FRONT of the page content. Autumn is the opposite — one fixed backdrop at
- * z-0, behind everything. That difference is deliberate, not an oversight: the
- * deer are a foreground band along the bottom, the pond is a whole environment.
+ * FRONT of the page content. Autumn and the cabin are the opposite — one fixed
+ * backdrop at z-(-1), behind everything. That difference is deliberate, not an
+ * oversight: the deer are a foreground band along the bottom, while the pond
+ * and the cabin valley are each a whole environment.
  */
 export const SeasonScene = () => {
   const [season] = useSeason();
@@ -26,6 +28,11 @@ export const SeasonScene = () => {
     return (
       <AutumnPondScene phase={phase} grading="faithful" zIndex={-1} />
     );
+  }
+
+  // Same zIndex reasoning as the pond above — see WinterCabinScene's header.
+  if (season === "cabin") {
+    return <WinterCabinScene zIndex={-1} />;
   }
 
   return (
@@ -43,12 +50,14 @@ export const SeasonScene = () => {
 
 /**
  * The per-page sky. Mount inside Index and Gallery where <WinterSky /> and
- * <Weather /> are now — the pond brings its own sky and weather, so in autumn
- * this renders nothing.
+ * <Weather /> are now. Only the original winter scene needs it; the pond and
+ * the cabin each paint their own sky and weather, so this renders nothing for
+ * them.
  */
 export const SeasonSky = () => {
   const [season] = useSeason();
-  if (season === "autumn") return null;
+  // The pond and the cabin both bring their own sky and weather.
+  if (season !== "winter") return null;
   return (
     <>
       <WinterSky />
@@ -57,12 +66,16 @@ export const SeasonSky = () => {
   );
 };
 
-const LABELS: Record<Season, string> = { autumn: "Autumn", winter: "Winter" };
+const LABELS: Record<Season, string> = { autumn: "Autumn", winter: "Winter", cabin: "Cabin" };
 
-/** Nav control. Styled off .nav-pill so it sits in the existing bar unchanged. */
+/**
+ * Nav control. Styled off .nav-pill so it sits in the existing bar unchanged.
+ * Steps through SEASONS in order and wraps, so adding a fourth scene is a
+ * one-line change in season.ts plus a label here.
+ */
 export const SeasonToggle = () => {
   const [season, set] = useSeason();
-  const next: Season = season === "autumn" ? "winter" : "autumn";
+  const next: Season = SEASONS[(SEASONS.indexOf(season) + 1) % SEASONS.length];
   return (
     <button
       onClick={() => set(next)}
