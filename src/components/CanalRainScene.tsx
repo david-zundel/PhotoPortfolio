@@ -2,10 +2,11 @@ import { useEffect, useRef, useState } from "react";
 
 import canal1500 from "@/assets/canal-1500.webp";
 import canal3000 from "@/assets/canal-3000.webp";
-import canalMax from "@/assets/canal-4500.webp";
+import canal4500 from "@/assets/canal-4500.webp";
+import canalMax from "@/assets/canal-6000.webp";
 
 /** Intrinsic width of the largest source, for the srcset descriptor. */
-const MAX_W = 4500;
+const MAX_W = 6000;
 
 /**
  * CanalRainScene — the "Canal in the Rain" backdrop.
@@ -354,11 +355,19 @@ export default function CanalRainScene({ zIndex = -1, rain = "light", className 
             not 2/3. Get it wrong and tablet-ish aspect ratios under-report.
 
             Phones are capped on purpose: a handset at DPR 3 would otherwise
-            pull the largest source, which is most of a megabyte for a screen
-            where 3000 already lands well above 2x density. */}
+            pull the largest source, which is 700 KB for a screen where 3000
+            already lands well above 2x density.
+
+            Sources come from the handoff's 6000x4000 backing store. That is a
+            resolution change only — same seed, same strokes, same logical
+            1500x1000 coordinates. The one thing that does NOT come along for
+            free is the glow pass: its blur radii are in DEVICE pixels, so they
+            scale with the backing store (14/5px at 2x became 28/10px at 4x).
+            Re-bake from the handoff rather than by hand, or the window bloom
+            comes out the wrong size. */}
         <img
           src={canalMax}
-          srcSet={`${canal1500} 1500w, ${canal3000} 3000w, ${canalMax} ${MAX_W}w`}
+          srcSet={`${canal1500} 1500w, ${canal3000} 3000w, ${canal4500} 4500w, ${canalMax} ${MAX_W}w`}
           sizes="(max-width: 820px) 1000px, (max-aspect-ratio: 3/2) 225vh, 150vw"
           alt=""
           decoding="async"
