@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react";
 
 import canal1500 from "@/assets/canal-1500.webp";
 import canal3000 from "@/assets/canal-3000.webp";
-import canal4500 from "@/assets/canal-4500.webp";
+import canalMax from "@/assets/canal-4500.webp";
+
+/** Intrinsic width of the largest source, for the srcset descriptor. */
+const MAX_W = 4500;
 
 /**
  * CanalRainScene — the "Canal in the Rain" backdrop.
@@ -336,17 +339,27 @@ export default function CanalRainScene({ zIndex = -1, rain = "light", className 
           height: "calc(var(--cr-stage-w) / 1.5)",
         }}
       >
-        {/* The stage is `max(100vw, 100vh * 1.5)`, and 150vh only wins once the
-            viewport is TALLER than 3:2 — so that is the breakpoint `sizes` has
-            to use, not 2/3. Get it wrong and every tablet-ish aspect ratio
-            under-reports its width and the browser serves a source too small.
-            The phone clause deliberately under-reports: a handset at DPR 3 is
-            "owed" 3798px of source, but 4500 is half a megabyte for a screen
-            where 3000 already lands at 2.4x density. Phones stop at 3000. */}
+        {/* srcset deliberately OVERSTATES the width by 1.5x.
+
+            The browser's normal rule — serve about one source pixel per device
+            pixel — assumes the source has real detail at that size. This one
+            does not: it is a painting built from a 1500x1000 reference, so at
+            density 1.0 you see every soft dab edge at full size with nothing in
+            reserve. Measured on a 2560x1440 monitor at 100% scaling, the honest
+            `sizes` picked the 3000px source and landed at exactly 1.00. Asking
+            for 150vw instead of 100vw pushes that to ~1.7 and the softness goes.
+
+            The stage itself is `max(100vw, 100vh * 1.5)`, and 150vh only wins
+            once the viewport is TALLER than 3:2 — so that is the breakpoint,
+            not 2/3. Get it wrong and tablet-ish aspect ratios under-report.
+
+            Phones are capped on purpose: a handset at DPR 3 would otherwise
+            pull the largest source, which is most of a megabyte for a screen
+            where 3000 already lands well above 2x density. */}
         <img
-          src={canal3000}
-          srcSet={`${canal1500} 1500w, ${canal3000} 3000w, ${canal4500} 4500w`}
-          sizes="(max-width: 820px) 1000px, (max-aspect-ratio: 3/2) 150vh, 100vw"
+          src={canalMax}
+          srcSet={`${canal1500} 1500w, ${canal3000} 3000w, ${canalMax} ${MAX_W}w`}
+          sizes="(max-width: 820px) 1000px, (max-aspect-ratio: 3/2) 225vh, 150vw"
           alt=""
           decoding="async"
           draggable={false}
