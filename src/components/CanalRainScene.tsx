@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import canal1500 from "@/assets/canal-1500.webp";
 import canal3000 from "@/assets/canal-3000.webp";
+import canal4500 from "@/assets/canal-4500.webp";
 
 /**
  * CanalRainScene — the "Canal in the Rain" backdrop.
@@ -335,10 +336,17 @@ export default function CanalRainScene({ zIndex = -1, rain = "light", className 
           height: "calc(var(--cr-stage-w) / 1.5)",
         }}
       >
+        {/* The stage is `max(100vw, 100vh * 1.5)`, and 150vh only wins once the
+            viewport is TALLER than 3:2 — so that is the breakpoint `sizes` has
+            to use, not 2/3. Get it wrong and every tablet-ish aspect ratio
+            under-reports its width and the browser serves a source too small.
+            The phone clause deliberately under-reports: a handset at DPR 3 is
+            "owed" 3798px of source, but 4500 is half a megabyte for a screen
+            where 3000 already lands at 2.4x density. Phones stop at 3000. */}
         <img
           src={canal3000}
-          srcSet={`${canal1500} 1500w, ${canal3000} 3000w`}
-          sizes="(max-aspect-ratio: 2/3) 150vh, 100vw"
+          srcSet={`${canal1500} 1500w, ${canal3000} 3000w, ${canal4500} 4500w`}
+          sizes="(max-width: 820px) 1000px, (max-aspect-ratio: 3/2) 150vh, 100vw"
           alt=""
           decoding="async"
           draggable={false}

@@ -247,7 +247,7 @@ export default function WinterCabinScene({
         <img
           src={cabin3200}
           srcSet={`${cabin1600} 1600w, ${cabin3200} 3200w`}
-          sizes="(max-aspect-ratio: 1/1) 200vh, 100vw"
+          sizes="(max-aspect-ratio: 2/1) 200vh, 100vw"
           alt=""
           decoding="async"
           fetchPriority="high"
