@@ -6,6 +6,9 @@
 /* Winter Cabin Valley theme. Same rule as above: an @import has to precede all
    rules or it never gets bundled. Scoped html[data-season="cabin"]. */
 @import "./cabin.css";
+/* Canal in the Rain theme. Same rule again: an @import has to precede all
+   rules or it never gets bundled. Scoped html[data-season="canal"]. */
+@import "./canal.css";
 
 @tailwind base;
 @tailwind components;

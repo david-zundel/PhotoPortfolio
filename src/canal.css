@@ -1,0 +1,238 @@
+/* ===================== Canal in the Rain theme =====================
+ * Import alongside season.css and cabin.css at the TOP of index.css — a CSS
+ * @import must precede all rules or the bundler leaves it as a literal
+ * statement and none of this ships.
+ *
+ * Scoped to html[data-season="canal"]. The other scenes are untouched.
+ *
+ * Like the cabin, this scene has no phases and no veil over the art. Unlike it,
+ * the painting is top-lit: the sky band is genuinely bright (mean luma 143)
+ * while the canal below runs dark (70). Measured off the baked image:
+ *   top 0-25%  143   |  25-50%  102  |  50-75%  70  |  bottom  68
+ * So light type is right for most of the page, and the halos have to be at
+ * their densest where a section lands high on the frame.
+ *
+ * Palette lifted off the painting: wet slate, canal steel, and the window
+ * amber (#f8d894 at its brightest) that is the only warm thing in the rain.
+ */
+
+html[data-season="canal"] {
+  --background: 205 16% 13%;
+  --foreground: 205 28% 95%;
+
+  --card: 205 14% 18%;
+  --card-foreground: 205 28% 95%;
+
+  --popover: 205 16% 15%;
+  --popover-foreground: 205 28% 95%;
+
+  /* Window amber — the lit rooms along the canal */
+  --primary: 36 66% 55%;
+  --primary-foreground: 36 40% 97%;
+
+  /* Canal steel */
+  --secondary: 202 20% 44%;
+  --secondary-foreground: 205 28% 95%;
+
+  --muted: 205 14% 23%;
+  --muted-foreground: 205 16% 80%;
+
+  --accent: 38 72% 63%;
+  --accent-foreground: 205 16% 13%;
+
+  --border: 205 12% 34%;
+  --input: 205 12% 34%;
+  --ring: 36 66% 55%;
+
+  /* The six "pastel" hues, retuned to wet stone and lamplight. */
+  --pastel-coral: 16 52% 58%;
+  --pastel-mint: 168 22% 50%;
+  --pastel-lavender: 232 22% 64%;
+  --pastel-peach: 30 66% 64%;
+  --pastel-sky: 202 42% 60%;
+  --pastel-lemon: 42 64% 62%;
+}
+
+/* ===================== Type on the painting =====================
+ * Same rules as cabin.css: every glow is CENTRED (0 0 blur), never offset
+ * downward, or it reads as a drop shadow sitting under the letters rather than
+ * as the letterform holding its own pocket of shade. Keep the y-offset at 0.
+ *
+ * Card interiors are exempt: --card stays dark and carries its own
+ * --card-foreground, so text on cards never picks up a halo. */
+
+html[data-season="canal"] {
+  /* Rain-washed white, very slightly cool — this light has no sun in it. */
+  --ink: #f2f6fa;
+  --shade: 12, 18, 24;
+
+  /* Window amber ramp for the hero name, sampled off the baked image:
+     the lit glass peaks at #f8d894 and averages #cda66c. */
+  --lamp-hi: #fdfaf3;
+  --lamp-mid: #fbeed2;
+  --lamp-low: #f6dfae;
+  --lamp-deep: #eec98c;
+  --lamp-glow: 250, 214, 148;
+}
+
+html[data-season="canal"] .section-title-winter {
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  text-shadow:
+    0 0 2px rgba(var(--shade), 0.74),
+    0 0 9px rgba(var(--shade), 0.64),
+    0 0 30px rgba(var(--shade), 0.56),
+    0 0 64px rgba(var(--shade), 0.46);
+}
+
+/* The hero name is lit like the windows across the water. Gradient text is
+   transparent-filled, so text-shadow would show THROUGH the glyphs — the glow
+   has to come from drop-shadow, which follows the rendered alpha.
+   The two tight dark layers come first and end up nearest the glyph; the warm
+   blooms radiate behind them. Do not add a third bloom past ~40px: on the
+   cabin that cost 5-7 dropped frames per scroll for no visible gain. */
+html[data-season="canal"] .winter-name {
+  background-image: linear-gradient(
+    177deg,
+    var(--lamp-hi) 0%,
+    var(--lamp-mid) 40%,
+    var(--lamp-low) 76%,
+    var(--lamp-deep) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+  filter:
+    drop-shadow(0 0 1px rgba(var(--shade), 0.8))
+    drop-shadow(0 0 4px rgba(var(--shade), 0.55))
+    drop-shadow(0 0 14px rgba(var(--lamp-glow), 0.6))
+    drop-shadow(0 0 40px rgba(var(--lamp-glow), 0.48));
+  /* Breathes like the cabin name, a touch slower — this is a rainy street, not
+     a hearth. Animating OPACITY, not the filter: the filter version measured
+     50ms median frames (20fps) on a full-page scroll, because every frame
+     re-rasterises the blur chain. Do not move it back into the filter. */
+  animation: crNameBreathe 9.2s ease-in-out infinite;
+}
+
+@keyframes crNameBreathe {
+  0%, 100% { opacity: 1; }
+  45% { opacity: 0.89; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="canal"] .winter-name { animation: none; }
+}
+
+/* Secondary copy is smaller, so it needs a ring rather than a spread — a soft
+   glow alone just greys it out against the pale sky band. All offsets are 0. */
+html[data-season="canal"] .text-muted-foreground,
+html[data-season="canal"] .eyebrow,
+html[data-season="canal"] .lede,
+html[data-season="canal"] .slide-caption p,
+html[data-season="canal"] .copyright {
+  color: rgba(246, 250, 253, 0.93);
+  text-shadow:
+    0 1px 1px rgba(var(--shade), 0.9),
+    0 -1px 1px rgba(var(--shade), 0.9),
+    1px 0 1px rgba(var(--shade), 0.9),
+    -1px 0 1px rgba(var(--shade), 0.9),
+    0 0 8px rgba(var(--shade), 0.72),
+    0 0 20px rgba(var(--shade), 0.54);
+}
+
+html[data-season="canal"] .bg-card .text-muted-foreground,
+html[data-season="canal"] .bg-muted .text-muted-foreground {
+  color: hsl(205 16% 80%);
+  text-shadow: none;
+}
+
+/* ---- Photo captions ----
+ * Landscape captions carry an inline per-photo gradient from the text_gradient
+ * column, so they can't be replaced from CSS — and shouldn't be: the colour is
+ * part of each photo's identity. Each is instead pushed into a readable range.
+ * drop-shadow rather than text-shadow because the text is gradient-clipped. */
+html[data-season="canal"] .slide-caption h3[style*="background-image"] {
+  filter:
+    brightness(1.5) saturate(1.06)
+    drop-shadow(0 0 2px rgba(var(--shade), 0.78))
+    drop-shadow(0 0 8px rgba(var(--shade), 0.64))
+    drop-shadow(0 0 26px rgba(var(--shade), 0.5));
+}
+
+html[data-season="canal"] .slide-caption h3:not([style*="background-image"]) {
+  color: var(--ink);
+  -webkit-text-fill-color: var(--ink);
+  text-shadow:
+    0 0 2px rgba(var(--shade), 0.78),
+    0 0 8px rgba(var(--shade), 0.64),
+    0 0 26px rgba(var(--shade), 0.5);
+}
+
+html[data-season="canal"] .slide-caption h3,
+html[data-season="canal"] .section-title-winter {
+  text-wrap: pretty;
+}
+
+/* ===================== Bars that sit on the sky =====================
+ * The navbar floats on the brightest band of the whole painting (the rain sky),
+ * so this bar is darker and more opaque than the cabin's — a light frosted bar
+ * there would disappear completely.
+ *
+ * nav > div covers Navbar.tsx as written. The Gallery filter row carries
+ * class="sky-bar" — prefer that class if the navbar is ever restructured. */
+
+html[data-season="canal"] nav > div,
+html[data-season="canal"] .sky-bar {
+  background: rgba(22, 30, 38, 0.72);
+  color: #e4ecf4;
+  border-color: rgba(198, 216, 232, 0.24);
+}
+html[data-season="canal"] .sky-bar {
+  border-radius: 999px;
+  padding: 0.375rem 0.5rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid;
+  width: max-content;
+}
+
+html[data-season="canal"] nav > div .nav-pill,
+html[data-season="canal"] .sky-bar .nav-pill {
+  color: inherit;
+  text-shadow: none;
+}
+
+/* .nav-pill.active hardcodes hsl(210 50% 42%) — a blue that vanishes into a
+   blue-grey bar on a grey scene. The lit windows are the only warm thing here,
+   so the active pill borrows them. */
+html[data-season="canal"] .nav-pill.active {
+  background: hsl(36 58% 46%);
+  color: #fdf7ea;
+  text-shadow: none;
+}
+html[data-season="canal"] .nav-pill:hover {
+  background: hsl(var(--pastel-sky) / 0.2);
+}
+
+/* ---- Carousel controls ---- */
+html[data-season="canal"] .carousel-btn {
+  background: rgba(20, 28, 36, 0.76);
+  color: #e8eff6;
+  border-color: rgba(216, 230, 242, 0.22);
+  box-shadow: 0 6px 22px rgba(4, 10, 16, 0.5);
+}
+html[data-season="canal"] .carousel-btn:hover {
+  background: rgba(30, 42, 54, 0.9);
+  box-shadow: 0 8px 28px rgba(4, 10, 16, 0.6);
+}
+html[data-season="canal"] .carousel-dot {
+  background: rgba(224, 234, 246, 0.34);
+}
+html[data-season="canal"] .carousel-dot:hover {
+  background: rgba(224, 234, 246, 0.6);
+}
+html[data-season="canal"] .carousel-dot.is-active {
+  background: #f8d894;
+}

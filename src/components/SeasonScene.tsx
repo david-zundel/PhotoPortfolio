@@ -4,6 +4,7 @@ import WinterTreeline from "@/components/WinterTreeline";
 import RunningDeer from "@/components/RunningDeer";
 import AutumnPondScene from "@/components/AutumnPondScene";
 import WinterCabinScene from "@/components/WinterCabinScene";
+import CanalRainScene from "@/components/CanalRainScene";
 import { useSeason, usePondPhase, SEASONS, type Season } from "@/lib/season";
 
 /**
@@ -11,10 +12,10 @@ import { useSeason, usePondPhase, SEASONS, type Season } from "@/lib/season";
  * the six deer.
  *
  * Winter keeps its original mount exactly: treeline and herd at z-20…33, in
- * FRONT of the page content. Autumn and the cabin are the opposite — one fixed
+ * FRONT of the page content. Every other scene is the opposite — one fixed
  * backdrop at z-(-1), behind everything. That difference is deliberate, not an
- * oversight: the deer are a foreground band along the bottom, while the pond
- * and the cabin valley are each a whole environment.
+ * oversight: the deer are a foreground band along the bottom, while the pond,
+ * the cabin valley and the canal are each a whole environment.
  */
 export const SeasonScene = () => {
   const [season] = useSeason();
@@ -33,6 +34,10 @@ export const SeasonScene = () => {
   // Same zIndex reasoning as the pond above — see WinterCabinScene's header.
   if (season === "cabin") {
     return <WinterCabinScene zIndex={-1} />;
+  }
+
+  if (season === "canal") {
+    return <CanalRainScene zIndex={-1} rain="light" />;
   }
 
   return (
@@ -66,7 +71,7 @@ export const SeasonSky = () => {
   );
 };
 
-const LABELS: Record<Season, string> = { autumn: "Autumn", winter: "Winter", cabin: "Cabin" };
+const LABELS: Record<Season, string> = { autumn: "Autumn", winter: "Winter", cabin: "Cabin", canal: "Canal" };
 
 /**
  * Nav control. Styled off .nav-pill so it sits in the existing bar unchanged.
