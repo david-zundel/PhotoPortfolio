@@ -42,8 +42,11 @@ export type MeshSceneProps = {
   /** PRODUCTION, portrait screens (3:4 or narrower): the photo and soft layer as a centre crop at
    *  1.5x the small set's resolution (portrait.json, photo-portrait / fur-portrait) */
   crop?: boolean;
-  /** "tilt": the first gyroscope reading arrived and the view now follows the phone */
+  /** "tilt": the first orientation reading arrived and the view now follows the phone */
   onTilt?: () => void;
+  /** explore mode (touch screens): a finger dragging on an element marked
+   *  [data-explore-surface] turns the view. Changing it does not reload the scene. */
+  discover?: boolean;
   /** CSS selector: drags start only inside it (default: anywhere that is not a control) */
   dragArea?: string;
   /** every layer loaded, the first frame drawn and fast enough on this device */
@@ -328,13 +331,18 @@ function mul(a: number[], b: number[]) {
 }
 
 export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDir, decoder, motion = "drag", small = false,
-  crop = false, dragArea, onReady, onFail, onTilt }: MeshSceneProps) {
+  crop = false, dragArea, onReady, onFail, onTilt, discover = false }: MeshSceneProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const prod = !!prodDir;
   const [status, setStatus] = useState("Loading 3D Photo Inpainting preview…");
   // the callbacks may be new functions on every render; the effect must not restart for that
   const cb = useRef({ onReady, onFail, onTilt });
   cb.current = { onReady, onFail, onTilt };
+  // explore mode is read through a ref, so switching it never restarts the scene
+  const discoverRef = useRef(discover);
+  discoverRef.current = discover;
+  const api = useRef<{ endDrag?: () => void }>({});
+  useEffect(() => { if (!discover) api.current.endDrag?.(); }, [discover]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -476,27 +484,53 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       last = performance.now(); raf = requestAnimationFrame(tick);
     };
 
+    /* The view's target is the sum of two inputs: a drag (mouse/pen on the hero; a finger only in
+       explore mode, see `discover`) and the phone's tilt. A drag eases home on release; the tilt
+       eases home by itself while the phone is held still. */
+    const clamp1 = (v: number) => Math.max(-1, Math.min(1, v));
+    let dragX = 0, dragY = 0, tiltX = 0, tiltY = 0, finger = false, fingerId = -1;
+    const apply = () => {
+      const tiltLive = Math.abs(tiltX) > 0.004 || Math.abs(tiltY) > 0.004;
+      dragging = finger || tiltLive;
+      if (!finger) { dragX = 0; dragY = 0; }
+      tx = dragging ? clamp1(dragX + tiltX) : 0; ty = dragging ? clamp1(dragY + tiltY) : 0;
+      if (dragging || moving || cx !== 0 || cy !== 0) kick();   // a plain click changes nothing
+    };
     const root = document.documentElement;
-    let sx = 0, sy = 0, bx = 0, by = 0, prevSel = "";
-    const REACH = 0.35;
+    let sx = 0, sy = 0, bx = 0, by = 0, prevSel = "", selLocked = false, reach = 0.35;
     const down = (e: PointerEvent) => {
-      if (e.button !== 0 && e.pointerType === "mouse") return;
+      if (finger) return;                                   // one finger turns the view
       const tgt = e.target as HTMLElement | null;
-      if (tgt?.closest("a, button, input, textarea, select, [role='button']")) return;
-      if (dragArea && !tgt?.closest(dragArea)) return;
-      dragging = true; prevSel = root.style.userSelect; root.style.userSelect = "none";
-      sx = e.clientX; sy = e.clientY; bx = tx; by = ty;
+      if (discoverRef.current) {
+        // explore mode: drags anywhere on its surface (not on its Done button)
+        if (!tgt?.closest("[data-explore-surface]")) return;
+        reach = 0.45;
+        cancelAnimationFrame(swayRaf); swayRaf = 0;         // the finger takes over from the drift
+      } else {
+        // the hero: mouse and pen only. A finger there scrolls the page (dragging the picture
+        // with it fought the page and Safari's toolbar); touch screens use explore mode instead.
+        if (motion !== "drag" || e.pointerType === "touch") return;
+        if (e.button !== 0 && e.pointerType === "mouse") return;
+        if (tgt?.closest("a, button, input, textarea, select, [role='button']")) return;
+        if (dragArea && !tgt?.closest(dragArea)) return;
+        reach = 0.35;
+        prevSel = root.style.userSelect; root.style.userSelect = "none"; selLocked = true;
+      }
+      finger = true; fingerId = e.pointerId;
+      sx = e.clientX; sy = e.clientY; bx = dragX; by = dragY;
+      apply();
     };
     const move = (e: PointerEvent) => {
-      if (!dragging) return;
-      tx = Math.max(-1, Math.min(1, bx + (e.clientX - sx) / (window.innerWidth * REACH)));
-      ty = Math.max(-1, Math.min(1, by + (e.clientY - sy) / (window.innerHeight * REACH)));
-      kick();
+      if (!finger || e.pointerId !== fingerId) return;
+      dragX = clamp1(bx + (e.clientX - sx) / (window.innerWidth * reach));
+      dragY = clamp1(by + (e.clientY - sy) / (window.innerHeight * reach));
+      apply();
     };
-    const up = () => {
-      if (!dragging) return;
-      dragging = false; root.style.userSelect = prevSel; tx = 0; ty = 0;
-      if (moving || cx !== 0 || cy !== 0) kick();   // a plain click changes nothing
+    const up = (e?: PointerEvent) => {
+      if (!finger || (e && e.pointerId !== fingerId)) return;
+      finger = false;
+      if (selLocked) { root.style.userSelect = prevSel; selLocked = false; }
+      apply();
     };
 
     const assets = `${import.meta.env.BASE_URL}preview-3dp/`;
@@ -832,69 +866,89 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       swayRaf = requestAnimationFrame(step);
     };
 
-    /* "tilt": the phone's gyroscope turns the view, as if the flowers were a little diorama held
-       in your hands: turn the phone and you see round the flowers from that side. Rotation
-       rates (not absolute angles) so it works however the phone is held, upright or flat;
-       integrated with a slow leak, so a tilt you hold eases back to the photo over a few
-       seconds and the view settles on the exact photograph when the phone is still.
-       On iPhones the events only arrive after the visitor allows motion access (TulipsScene's
-       "Tilt to explore" button); until then, or on phones without a gyroscope, the drift runs. */
+    /* "tilt": turning the phone turns the view, as if the flowers were a little diorama held in
+       your hands: turn it and you see round the flowers from that side. Measured as the phone's
+       turn between successive orientation readings, in the phone's own axes, so it works
+       however the phone is held, upright or flat; integrated with a slow leak, so a tilt you
+       hold eases back to the photo over a few seconds and the view settles on the exact
+       photograph while the phone is still.
+       Orientation (deviceorientation), not the gyroscope's rates (devicemotion rotationRate):
+       Safari on iOS reports those rates under different axis names than Chrome on Android
+       (its "alpha" is the turn about x, not z), which made the view follow the phone being
+       turned flat in the plane of its screen instead of tilted. The orientation angles mean
+       the same on both.
+       On iPhones the readings only arrive after the visitor allows motion access (TulipsScene's
+       explore button); until then, or on devices without the sensors, the drift runs. */
     const TILT_RANGE = 12;        // degrees of turn for a full swing
     const TILT_LEAK = 3;          // seconds for a held tilt to ease ~2/3 of the way back
-    let tiltOn = false, yaw = 0, pitch = 0, lastM = 0;
+    const D2R = Math.PI / 180;
+    let tiltOn = false, yaw = 0, pitch = 0, lastM = 0, prevR: number[] | null = null;
     const screenAngle = () => {
       const a = window.screen?.orientation?.angle ?? Number((window as unknown as { orientation?: number }).orientation ?? 0);
-      return (((a % 360) + 360) % 360) * Math.PI / 180;
+      return (((a % 360) + 360) % 360) * D2R;
     };
-    const onMotion = (e: DeviceMotionEvent) => {
-      const r = e.rotationRate;
-      if (!ready || !alive || !r || r.beta == null || r.gamma == null) return;
+    // the phone's attitude as a rotation matrix, R = Rz(alpha) Rx(beta) Ry(gamma) (row-major)
+    const attitude = (al: number, be: number, ga: number) => {
+      const ca = Math.cos(al * D2R), sa = Math.sin(al * D2R), cb = Math.cos(be * D2R), sb = Math.sin(be * D2R);
+      const cg = Math.cos(ga * D2R), sg = Math.sin(ga * D2R);
+      return [ca * cg - sa * sb * sg, -sa * cb, ca * sg + sa * sb * cg,
+              sa * cg + ca * sb * sg, ca * cb, sa * sg - ca * sb * cg,
+              -cb * sg, sb, cb * cg];
+    };
+    const onOrient = (e: DeviceOrientationEvent) => {
+      if (!ready || !alive || e.beta == null || e.gamma == null) return;
       const now = performance.now();
-      if (!tiltOn) {               // first real reading: the gyroscope takes over from the drift
-        tiltOn = true; lastM = now;
+      const R = attitude(e.alpha ?? 0, e.beta, e.gamma);
+      if (!tiltOn) {               // first real reading: the phone takes over from the drift
+        tiltOn = true; lastM = now; prevR = R;
         cancelAnimationFrame(swayRaf); swayRaf = 0;
-        tx = 0; ty = 0; dragging = false; kick();   // ease from wherever the drift was
+        apply();                   // ease from wherever the drift was
         cb.current.onTilt?.();
         return;
       }
+      const P = prevR!; prevR = R;
       const dt = Math.min(0.1, (now - lastM) / 1000); lastM = now;
       if (document.hidden || window.scrollY > window.innerHeight * 1.5) return;
-      // device axes -> screen axes (landscape turns them a quarter)
+      // the turn since the last reading, in the phone's axes: dR = P^T R, small-angle part
+      const d = (i: number, j: number) => P[i] * R[j] + P[3 + i] * R[3 + j] + P[6 + i] * R[6 + j];
+      const wx = (d(2, 1) - d(1, 2)) / 2 / D2R, wy = (d(0, 2) - d(2, 0)) / 2 / D2R;   // degrees
+      if (Math.abs(wx) > 20 || Math.abs(wy) > 20) return;   // a glitch or a reset, not a turn
+      // phone axes -> screen axes (landscape turns them a quarter)
       const a = screenAngle();
-      const aboutRight = r.beta * Math.cos(a) - r.gamma * Math.sin(a);   // deg/s, top edge toward you > 0
-      const aboutUp = r.beta * Math.sin(a) + r.gamma * Math.cos(a);      // deg/s, right edge away > 0
+      const aboutRight = wx * Math.cos(a) - wy * Math.sin(a);   // top edge toward you > 0
+      const aboutUp = wx * Math.sin(a) + wy * Math.cos(a);      // right edge away from you > 0
       const leak = Math.exp(-dt / TILT_LEAK), lim = TILT_RANGE * 1.25;
-      yaw = Math.max(-lim, Math.min(lim, (yaw + aboutUp * dt) * leak));
-      pitch = Math.max(-lim, Math.min(lim, (pitch + aboutRight * dt) * leak));
+      yaw = Math.max(-lim, Math.min(lim, (yaw + aboutUp) * leak));
+      pitch = Math.max(-lim, Math.min(lim, (pitch + aboutRight) * leak));
       // right edge away: you see the flowers from their left; top toward you: from above
-      const nx = Math.max(-1, Math.min(1, -yaw / TILT_RANGE)), ny = Math.max(-1, Math.min(1, -pitch / TILT_RANGE));
-      if (Math.abs(nx) < 0.004 && Math.abs(ny) < 0.004) {
-        // still phone: go home, then the usual crossfade back to the exact photograph
-        if (tx !== 0 || ty !== 0 || dragging) { tx = 0; ty = 0; dragging = false; kick(); }
-        return;
-      }
-      tx = nx; ty = ny; dragging = true; kick();
+      tiltX = clamp1(-yaw / TILT_RANGE); tiltY = clamp1(-pitch / TILT_RANGE);
+      if (Math.abs(tiltX) < 0.004 && Math.abs(tiltY) < 0.004) { tiltX = 0; tiltY = 0; }
+      if (finger || tiltX !== 0 || tiltY !== 0 || tx !== 0 || ty !== 0 || dragging) apply();
+    };
+    // explore mode ended: let go of any drag, and bring the drift back if nothing else moves it
+    api.current.endDrag = () => {
+      if (finger) { finger = false; apply(); }
+      if (motion === "tilt" && ready && !tiltOn && !swayRaf) startSway();
     };
 
     setSize(fullDpr);
     window.addEventListener("resize", resize);
-    if (motion === "drag") {
-      window.addEventListener("pointerdown", down, { passive: true });
-      window.addEventListener("pointermove", move, { passive: true });
-      window.addEventListener("pointerup", up, { passive: true });
-      window.addEventListener("pointercancel", up, { passive: true });
-    }
-    if (motion === "tilt") window.addEventListener("devicemotion", onMotion);
+    window.addEventListener("pointerdown", down, { passive: true });
+    window.addEventListener("pointermove", move, { passive: true });
+    window.addEventListener("pointerup", up, { passive: true });
+    window.addEventListener("pointercancel", up, { passive: true });
+    if (motion === "tilt") window.addEventListener("deviceorientation", onOrient);
     return () => {
       alive = false; cancelAnimationFrame(raf); cancelAnimationFrame(fadeRaf); cancelAnimationFrame(swayRaf);
       canvas.removeEventListener("webglcontextlost", lost);
-      window.removeEventListener("devicemotion", onMotion);
+      window.removeEventListener("deviceorientation", onOrient);
+      api.current.endDrag = undefined;
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
-      root.style.userSelect = prevSel;
+      if (selLocked) root.style.userSelect = prevSel;
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, [swing, prodDir, decoder, motion, small, crop, dragArea]);

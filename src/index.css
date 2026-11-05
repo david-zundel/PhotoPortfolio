@@ -314,3 +314,18 @@
   height: 100vh;
   height: 100lvh;
 }
+
+/* The tulips' explore mode (touch screens, TulipsScene): the page steps aside so the photo
+   fills the screen, and the page can't scroll while a finger turns the view. */
+.site-content {
+  transition: opacity 0.4s ease;
+}
+html[data-explore] .site-content {
+  opacity: 0;
+  pointer-events: none;
+}
+html[data-explore],
+html[data-explore] body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}

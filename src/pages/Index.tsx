@@ -17,7 +17,8 @@ const Index = () => {
           and an opaque wrapper would hide it. body still carries bg-background. */}
       <SeasonSky />
 
-      <div className="relative z-10">
+      {/* site-content: faded out while the tulips' explore mode is open (see index.css) */}
+      <div className="relative z-10 site-content">
         <Navbar />
         <HeroSection />
         <LandscapesSection />

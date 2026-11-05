@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion as m } from "framer-motion";
-import { Smartphone } from "lucide-react";
+import { Rotate3d, X } from "lucide-react";
 
 /**
  * TulipsScene — the tulip photograph as a backdrop you can turn a few degrees.
@@ -12,8 +12,10 @@ import { Smartphone } from "lucide-react";
  * version IS the photo, so the fade is invisible; it only shows when the view moves.
  *
  *  - mouse / pen: drag on the hero to turn the view; it eases home on release
- *  - touch screens: tilt the phone (gyroscope). iPhones need the visitor's permission first, asked
- *    from a small "Tilt to explore" button on the hero; until then the view drifts slowly
+ *  - touch screens: tilting the phone turns the view (iPhones ask permission first, from the
+ *    explore button; until then the view drifts slowly). A finger on the hero scrolls the page as
+ *    usual; the "Explore in 3D" button opens explore mode, where the photo fills the screen, the
+ *    page can't scroll, and dragging anywhere turns the view, until Done
  *  - portrait phones get a centre crop of the photo at higher resolution (the still and the 3D
  *    textures), since they only ever show the middle ~40% of its width
  *  - reduced motion, Save-Data / slow connection, no WebGL2, a lost GPU context, or a device
@@ -33,7 +35,7 @@ const DIR = `${BASE}tulips/`;
 /* 3:4 or narrower: every phone held upright, and tablets in portrait */
 const PORTRAIT = "(max-aspect-ratio: 3/4)";
 
-type Plan = { motion: "drag" | "tilt"; small: boolean } | null;
+type Plan = { motion: "drag" | "tilt"; small: boolean; touch: boolean } | null;
 type MotionPermission = { requestPermission?: () => Promise<"granted" | "denied"> };
 
 const mq = (q: string) => typeof window !== "undefined" && !!window.matchMedia?.(q).matches;
@@ -53,7 +55,8 @@ function plan3D(): Plan {
   }
   const touchOnly = mq("(pointer: coarse)") && !mq("(any-pointer: fine)");
   const devicePx = Math.max(window.screen.width, window.screen.height) * (window.devicePixelRatio || 1);
-  return { motion: touchOnly ? "tilt" : "drag", small: touchOnly || devicePx < 2600 };
+  // any touch screen gets explore mode (an iPad with a trackpad still gets touched)
+  return { motion: touchOnly ? "tilt" : "drag", small: touchOnly || devicePx < 2600, touch: mq("(any-pointer: coarse)") };
 }
 
 export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
@@ -63,7 +66,8 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
   const [failed, setFailed] = useState(false);
   const [portrait, setPortrait] = useState(() => mq(PORTRAIT));
   const [tilting, setTilting] = useState(false);
-  const [asked, setAsked] = useState(false);
+  const [explore, setExplore] = useState(false);
+  const asked = useRef(false);
 
   // start the 3D download only after the page (and the still photo) have loaded
   useEffect(() => {
@@ -88,13 +92,17 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
   const key = crop ? "portrait" : "full";
   const ready = readyKey === key;
 
-  /* iPhones (iOS 13+) only send motion data after the visitor allows it, and the prompt can only
-     be opened from a tap. Android sends it without asking, so the button never shows there. */
-  const DM = typeof window !== "undefined" ? (window.DeviceMotionEvent as unknown as MotionPermission | undefined) : undefined;
-  const needsAsk = plan?.motion === "tilt" && typeof DM?.requestPermission === "function";
-  const home = needsAsk && ready && !tilting && !asked ? document.getElementById("home") : null;
-  const askTilt = () => {
-    DM?.requestPermission?.().catch(() => "denied").finally(() => setAsked(true));
+  /* Explore mode, from a button on the hero (touch screens). On iPhones (iOS 13+) the same tap
+     asks for motion access, since Safari only opens that prompt from a tap; Android sends
+     orientation without asking. If it's refused, explore mode still works by dragging. */
+  const home = plan?.touch && ready && !explore ? document.getElementById("home") : null;
+  const openExplore = () => {
+    const DO = window.DeviceOrientationEvent as unknown as MotionPermission | undefined;
+    if (plan?.motion === "tilt" && !tilting && !asked.current && typeof DO?.requestPermission === "function") {
+      asked.current = true;
+      DO.requestPermission().catch(() => "denied");   // if allowed, the view starts following the phone
+    }
+    setExplore(true);
   };
 
   return (
@@ -132,6 +140,7 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
               onReady={() => setReadyKey(key)}
               onFail={() => setFailed(true)}
               onTilt={() => setTilting(true)}
+              discover={explore}
             />
           </Suspense>
         </div>
@@ -139,7 +148,7 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
       {home && createPortal(
         <m.button
           type="button"
-          onClick={askTilt}
+          onClick={openExplore}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.8 }}
@@ -148,18 +157,75 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
           className="absolute left-1/2 bottom-28 z-10 flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm font-body text-white/90 backdrop-blur-md"
           style={{ x: "-50%", background: "rgba(12, 22, 12, 0.55)" }}
         >
-          <m.span
-            aria-hidden="true"
-            className="flex"
-            animate={{ rotate: [0, -14, 0, 14, 0] }}
-            transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.2 }}
-          >
-            <Smartphone size={16} strokeWidth={1.75} />
-          </m.span>
-          Tilt to explore
+          <Rotate3d size={16} strokeWidth={1.75} aria-hidden="true" />
+          Explore in 3D
         </m.button>,
         home,
       )}
+      {explore && createPortal(
+        <ExploreLayer tilt={plan?.motion === "tilt"} onDone={() => setExplore(false)} />,
+        document.body,
+      )}
+    </div>
+  );
+}
+
+/**
+ * Explore mode's layer: a clear surface over the whole page that takes every touch (so the page
+ * can't scroll and Safari's toolbar stays put), a Done button, and a short hint. The page itself
+ * fades out (html[data-explore], see index.css); MeshPreviewScene turns the view for drags that
+ * start on [data-explore-surface].
+ */
+function ExploreLayer({ tilt, onDone }: { tilt: boolean; onDone: () => void }) {
+  const surface = useRef<HTMLDivElement>(null);
+  const done = useRef(onDone);
+  done.current = onDone;
+  useEffect(() => {
+    const html = document.documentElement;
+    html.setAttribute("data-explore", "");
+    // iOS ignores touch-action for some gestures (rubber-banding, the toolbar): stop them here.
+    // A native listener, because React's touch listeners are passive and can't prevent anything.
+    const el = surface.current;
+    const block = (e: TouchEvent) => { if (e.cancelable) e.preventDefault(); };
+    el?.addEventListener("touchmove", block, { passive: false });
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") done.current(); };
+    window.addEventListener("keydown", key);
+    return () => {
+      html.removeAttribute("data-explore");
+      el?.removeEventListener("touchmove", block);
+      window.removeEventListener("keydown", key);
+    };
+  }, []);
+  return (
+    <div
+      ref={surface}
+      data-explore-surface=""
+      role="dialog"
+      aria-label="Explore the tulips in 3D"
+      className="fixed inset-0 z-[100] select-none"
+      style={{ touchAction: "none", WebkitTouchCallout: "none" }}
+    >
+      <m.button
+        type="button"
+        onClick={onDone}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+        className="absolute flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-sm font-body text-white/90 backdrop-blur-md"
+        style={{ top: "max(16px, env(safe-area-inset-top))", right: 16, background: "rgba(12, 22, 12, 0.55)" }}
+      >
+        <X size={16} strokeWidth={1.75} aria-hidden="true" />
+        Done
+      </m.button>
+      <m.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 1, 1, 0] }}
+        transition={{ duration: 4, times: [0, 0.12, 0.8, 1], delay: 0.3 }}
+        className="pointer-events-none absolute left-0 right-0 text-center text-sm font-body text-white/90"
+        style={{ bottom: "max(40px, calc(env(safe-area-inset-bottom) + 24px))", textShadow: "0 1px 8px rgba(0,0,0,0.7)" }}
+      >
+        {tilt ? "Drag or tilt to look around" : "Drag to look around"}
+      </m.p>
     </div>
   );
 }
