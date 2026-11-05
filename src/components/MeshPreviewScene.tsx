@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * PREVIEW ONLY — not part of the site. Renders the tulip photo as rebuilt by
- * 3D Photo Inpainting (vt-vl-lab, CVPR 2020), from public/preview-3dp/ (which
- * is excluded from git). Mounted only by the dev server with `?3dp` in the URL.
+ * Two uses:
+ *  - PRODUCTION (the `dir` prop, mounted by TulipsScene): the homepage's tulip backdrop, from
+ *    public/hero3d/tulips/. No preview UI, nothing read from the URL, the soft-edge settings fixed.
+ *  - PREVIEW (no `dir`): the dev server's `?3dp=<scene>` comparison page for the builds in
+ *    public/preview-3dp/ (excluded from git), with a status line and a scene switcher.
+ *
+ * Originally the photo as rebuilt by 3D Photo Inpainting (vt-vl-lab, CVPR 2020);
+ * the tulips now use our own depth, soft edges and a LaMa clean plate.
  *
  * The mesh is the 1920px 3DP output after offline packing (pack.mjs): reduced
  * from 27.5M to ~4.9M triangles at half-pixel screen error with every outline
@@ -20,6 +25,25 @@ import { useEffect, useRef, useState } from "react";
 type Meta = {
   nv: number; nt: number; W: number; H: number; f: number;
   z0: number; z1: number; tanX: number; tanY: number; tx0: number; ty0: number;
+};
+export type MeshSceneProps = {
+  zIndex?: number;
+  /** degrees the camera swings at a full drag */
+  swing?: number;
+  /** PRODUCTION: the scene's asset folder (URL ending in "/"). Turns the preview UI off. */
+  dir?: string;
+  /** URL of meshopt_decoder.mjs (default: public/preview-3dp/) */
+  decoder?: string;
+  /** "drag": mouse/pen drags the view. "sway": a slow automatic drift (touch screens) */
+  motion?: "drag" | "sway";
+  /** smaller textures (photo-3072 / fur-3072) and depth maps: phones and small screens */
+  small?: boolean;
+  /** CSS selector: drags start only inside it (default: anywhere that is not a control) */
+  dragArea?: string;
+  /** every layer loaded, the first frame drawn and fast enough on this device */
+  onReady?: () => void;
+  /** loading failed, WebGL lost its context, or the device is too slow: show the photo */
+  onFail?: (why: string) => void;
 };
 type Decoder = {
   ready: Promise<void>;
@@ -293,15 +317,23 @@ function mul(a: number[], b: number[]) {
   return o;
 }
 
-export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?: number; swing?: number }) {
+export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDir, decoder, motion = "drag", small = false,
+  dragArea, onReady, onFail }: MeshSceneProps) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const prod = !!prodDir;
   const [status, setStatus] = useState("Loading 3D Photo Inpainting preview…");
+  // the callbacks may be new functions on every render; the effect must not restart for that
+  const cb = useRef({ onReady, onFail });
+  cb.current = { onReady, onFail };
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
+    const fail = (why: string) => { setStatus(why); cb.current.onFail?.(why); };
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: true });
-    if (!gl) { setStatus("WebGL2 unavailable"); return; }
+    if (!gl) { fail("WebGL2 unavailable"); return; }
+    const lost = (e: Event) => { e.preventDefault(); fail("WebGL context lost"); };
+    canvas.addEventListener("webglcontextlost", lost);
     let alive = true, raf = 0, running = false, last = 0, moving = false;
     /* 0 while the mouse is down and the scene is gliding home, 1 once it has
        settled. The colouring rule switches on THIS, not on camera position,
@@ -322,12 +354,15 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
     /* ?3dp            -> tulips (files at the root of public/preview-3dp/)
        ?3dp=deer       -> public/preview-3dp/deer/
        ?3dp=raw / &raw -> 3DP's own colours instead of the full-res photo */
-    const q = new URLSearchParams(window.location.search);
+    // production reads nothing from the URL: every flag below takes its default
+    const q = prod ? new URLSearchParams() : new URLSearchParams(window.location.search);
     /* &swing=4 tries a smaller drag range (degrees at full drag; default 5.5) */
     const sw = Math.min(10, Math.max(1, Number(q.get("swing")) || swing));
     const v = q.get("3dp") ?? "";
     const sharp = !(v === "raw" || q.has("raw"));
-    const scene = v !== "raw" && /^[a-z0-9_-]+$/.test(v) ? v : "";
+    const scene = prod ? "ourssoft" : v !== "raw" && /^[a-z0-9_-]+$/.test(v) ? v : "";
+    // textures: the smaller set when asked for, or when this GPU can't hold a 6144 px texture
+    const useSmall = prod && (small || (gl.getParameter(gl.MAX_TEXTURE_SIZE) as number) < 6144);
     const debugOwn = q.has("own");
     const holesDbg = q.has("holes");
     gl.uniform1f(U("uSharp"), sharp ? 1 : 0);
@@ -423,7 +458,9 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
     const REACH = 0.35;
     const down = (e: PointerEvent) => {
       if (e.button !== 0 && e.pointerType === "mouse") return;
-      if ((e.target as HTMLElement | null)?.closest("a, button, input, textarea, select, [role='button']")) return;
+      const tgt = e.target as HTMLElement | null;
+      if (tgt?.closest("a, button, input, textarea, select, [role='button']")) return;
+      if (dragArea && !tgt?.closest(dragArea)) return;
       dragging = true; prevSel = root.style.userSelect; root.style.userSelect = "none";
       sx = e.clientX; sy = e.clientY; bx = tx; by = ty;
     };
@@ -440,7 +477,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
     };
 
     const assets = `${import.meta.env.BASE_URL}preview-3dp/`;
-    const dir = scene ? `${assets}${scene}/` : assets;
+    const dir = prodDir ?? (scene ? `${assets}${scene}/` : assets);
     const bin = (url: string) => fetch(url).then((r) => {
       if (!r.ok) throw new Error(`${url.split("/").pop()}: HTTP ${r.status}`);
       return r.arrayBuffer();
@@ -449,14 +486,18 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
     (async () => {
       try {
         const t0 = performance.now();
-        let name = "";
-        for (const n of ["p1920", "p960"]) { if (isJson(await fetch(dir + n + ".json"))) { name = n; break; } }
+        let name = prod ? "p1920" : "";
+        if (!prod) for (const n of ["p1920", "p960"]) { if (isJson(await fetch(dir + n + ".json"))) { name = n; break; } }
         if (!name) throw new Error(`no packed mesh in public/preview-3dp/${scene ? scene + "/" : ""}`);
         const m: Meta = await (await fetch(dir + name + ".json")).json();
         const photoP = new Promise<HTMLImageElement>((res, rej) => {
-          const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error("photo.webp missing")); im.src = dir + "photo.webp";
+          const f = useSmall ? "photo-3072.webp" : "photo.webp";
+          const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(`${f} missing`)); im.src = dir + f;
         });
-        const decP = import(/* @vite-ignore */ `${assets}meshopt_decoder.mjs`).then(async (mod) => {
+        /* A plain template literal on purpose: the dev server leaves `import(\`...\`)` alone, while
+           any other expression gets a ?import query that it refuses for files in public/. */
+        const decUrl = decoder ?? `${assets}meshopt_decoder.mjs`;
+        const decP = import(/* @vite-ignore */ `${decUrl}`).then(async (mod) => {
           const d = mod.MeshoptDecoder as Decoder; await d.ready; return d;
         });
         const [mv, mi, dec, photo] = await Promise.all([bin(dir + name + ".mv"), bin(dir + name + ".mi"), decP, photoP]);
@@ -497,7 +538,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
         gl.attachShader(restProg, mk(gl.FRAGMENT_SHADER, REST_FRAG));
         gl.linkProgram(restProg);
         if (gl.getProgramParameter(restProg, gl.LINK_STATUS)) {
-          const RW = Math.min(4096, m.W * 2), RH = Math.round(RW * m.ty0 / m.tx0);
+          const RW = Math.min(useSmall ? 2048 : 4096, m.W * 2), RH = Math.round(RW * m.ty0 / m.tx0);
           const restTex = gl.createTexture();
           gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, restTex);
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, RW, RH, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
@@ -548,7 +589,9 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
               pass(restTex, 1, tmp, 1, 0, 12, 0); pass(tmp, 4, zMin, 0, 1, 12, 0);
               pass(restTex, 1, tmp, 1, 0, 1, 1); pass(tmp, 4, zMax, 0, 1, 1, 1);   // farthest within 1 texel
               gl.depthFunc(gl.LESS);
-              // offsets to clean background for the far side of every edge
+              // offsets to clean background for the far side of every edge (soft-edge scenes use
+              // neither renderer fill, so they skip these two maps and the memory they take)
+              if (!softScene) {
               const pushTex = gl.createTexture(); gl.activeTexture(gl.TEXTURE5); gl.bindTexture(gl.TEXTURE_2D, pushTex);
               gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, RW, RH, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
               for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.NEAREST], [gl.TEXTURE_MAG_FILTER, gl.NEAREST],
@@ -582,6 +625,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
                 gl.uniform2i(gl.getUniformLocation(ep, "uSize"), RW, RH);
                 gl.uniform2f(gl.getUniformLocation(ep, "uNF"), REST_NF[0], REST_NF[1]);
                 gl.disable(gl.DEPTH_TEST); gl.drawArrays(gl.TRIANGLES, 0, 3); gl.enable(gl.DEPTH_TEST);
+              }
               }
               gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
               // rebind each map to its own unit for the main pass
@@ -627,10 +671,31 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
         let furNote = "";
         const fr = await fetch(dir + "fur.json");
         if (isJson(fr)) {
-          const fm: { box: number[]; PW: number; PH: number; nv: number; ni: number } = await fr.json();
-          const [fb, fimg] = await Promise.all([bin(dir + "fur.bin"), new Promise<HTMLImageElement>((res, rej) => {
-            const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error("fur.webp missing")); im.src = dir + "fur.webp";
-          })]);
+          const fm: { box: number[]; PW: number; PH: number; nv: number; ni: number;
+            format?: string; step?: number; z0?: number; z1?: number } = await fr.json();
+          const furTex = useSmall ? "fur-3072.webp" : "fur.webp";
+          const fimgP = new Promise<HTMLImageElement>((res, rej) => {
+            const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(`${furTex} missing`)); im.src = dir + furTex;
+          });
+          let fverts: Float32Array, fidx: Uint32Array;
+          if (fm.format === "meshopt-u16") {
+            /* compressed (pack_fur.mjs): u, v as steps of a 4 px grid on the full photo, distance as
+               uint16 over [z0, z1]; expanded here to the float layout the shader reads */
+            const [fmv, fmi] = await Promise.all([bin(dir + "fur.mv"), bin(dir + "fur.mi")]);
+            const raw = new Uint8Array(fm.nv * 8); fidx = new Uint32Array(fm.ni);
+            dec.decodeVertexBuffer(raw, fm.nv, 8, new Uint8Array(fmv));
+            dec.decodeIndexBuffer(new Uint8Array(fidx.buffer), fm.ni, 4, new Uint8Array(fmi));
+            const u16 = new Uint16Array(raw.buffer), st = fm.step ?? 4, z0 = fm.z0 ?? 0, z1 = fm.z1 ?? 1;
+            fverts = new Float32Array(fm.nv * 3);
+            for (let i = 0; i < fm.nv; i++) {
+              fverts[3 * i] = (u16[4 * i] * st) / fm.PW; fverts[3 * i + 1] = (u16[4 * i + 1] * st) / fm.PH;
+              fverts[3 * i + 2] = z0 + (u16[4 * i + 2] / 65535) * (z1 - z0);
+            }
+          } else {
+            const fbuf = await bin(dir + "fur.bin");
+            fverts = new Float32Array(fbuf, 0, fm.nv * 3); fidx = new Uint32Array(fbuf, fm.nv * 12, fm.ni);
+          }
+          const fimg = await fimgP;
           if (!alive) return;
           const fp = gl.createProgram()!;
           gl.attachShader(fp, mk(gl.VERTEX_SHADER, FUR_VERT)); gl.attachShader(fp, mk(gl.FRAGMENT_SHADER, FUR_FRAG));
@@ -653,10 +718,10 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
           gl.activeTexture(gl.TEXTURE0);
           const vao = gl.createVertexArray()!; gl.bindVertexArray(vao);
           gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
-          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fb, 0, fm.nv * 3), gl.STATIC_DRAW);
+          gl.bufferData(gl.ARRAY_BUFFER, fverts, gl.STATIC_DRAW);
           gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 12, 0);
           gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gl.createBuffer());
-          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint32Array(fb, fm.nv * 12, fm.ni), gl.STATIC_DRAW);
+          gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, fidx, gl.STATIC_DRAW);
           gl.bindVertexArray(null); gl.useProgram(prog);
           fur = { prog: fp, vao, n: fm.ni, mvp: FU("uMVP") };
           furNote = " · soft fur layer";
@@ -665,6 +730,21 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
         setStatus(`${scene.startsWith("ours") ? "Our mesh (our depth + your photo; fill colours from 3D Photo Inpainting; no Apple model)" : "3D Photo Inpainting preview"}${scene ? ` (${scene})` : ""} · ${m.W}px geometry · ${(m.nt / 1e6).toFixed(2)}M triangles · ${mb} MB · `
           + `loaded in ${((performance.now() - t0) / 1000).toFixed(1)} s · ${sharp ? (haveRest ? "your photo wherever visible" : "full-res photo (per-vertex fallback)") : "raw colours"}${furNote} · drag to rotate`);
         resize();
+        if (prod) {
+          /* Is this device fast enough? Time a few frames at a drag pose, waiting for the GPU after
+             each (a 1-pixel read). Slower than ~30 fps: stay with the still photo instead. */
+          const px = new Uint8Array(4), keep = [cx, cy, moving, settle] as const;
+          cx = 0.6; cy = -0.3; moving = true; settle = 0; setSize(moveDpr);
+          for (let i = 0; i < 2; i++) { draw(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }   // warm-up
+          const t1 = performance.now();
+          for (let i = 0; i < 4; i++) { draw(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }
+          const ms = (performance.now() - t1) / 4;
+          [cx, cy, moving, settle] = keep; setSize(fullDpr); draw();
+          if (!alive) return;
+          if (ms > 34) { fail(`too slow here (${ms.toFixed(0)} ms a frame)`); return; }
+          if (motion === "sway") startSway();
+          cb.current.onReady?.();
+        }
         /* ?3dp&bench: window.__mpBench(mode) times the moving-camera frame on
            this machine's GPU — 0 = old per-vertex colouring, 2 = current
            visibility rule (precomputed edge map). */
@@ -685,18 +765,41 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
           };
         }
       } catch (err) {
-        setStatus(`Preview files missing — ${(err as Error).message}`);
+        fail(`Preview files missing — ${(err as Error).message}`);
       }
     })();
 
+    /* Touch screens can't drag a backdrop without fighting the page's scrolling, so there the
+       view drifts slowly on its own instead: a few degrees, ~30 fps, paused while the tab is
+       hidden or the hero is scrolled well out of view. */
+    let swayRaf = 0;
+    const startSway = () => {
+      const t0s = performance.now(); let lastS = 0;
+      const step = (now: number) => {
+        swayRaf = requestAnimationFrame(step);
+        if (document.hidden || window.scrollY > window.innerHeight * 1.5 || now - lastS < 33) return;
+        lastS = now;
+        const t = (now - t0s) / 1000, ramp = Math.min(1, t / 4);
+        cx = ramp * 0.42 * Math.sin((t * 2 * Math.PI) / 17);
+        cy = ramp * 0.18 * Math.sin((t * 2 * Math.PI) / 23 + 1.1);
+        settle = Math.max(0, 1 - t / 1.5);
+        if (!moving) { moving = true; setSize(moveDpr); }
+        draw();
+      };
+      swayRaf = requestAnimationFrame(step);
+    };
+
     setSize(fullDpr);
     window.addEventListener("resize", resize);
-    window.addEventListener("pointerdown", down, { passive: true });
-    window.addEventListener("pointermove", move, { passive: true });
-    window.addEventListener("pointerup", up, { passive: true });
-    window.addEventListener("pointercancel", up, { passive: true });
+    if (motion === "drag") {
+      window.addEventListener("pointerdown", down, { passive: true });
+      window.addEventListener("pointermove", move, { passive: true });
+      window.addEventListener("pointerup", up, { passive: true });
+      window.addEventListener("pointercancel", up, { passive: true });
+    }
     return () => {
-      alive = false; cancelAnimationFrame(raf); cancelAnimationFrame(fadeRaf);
+      alive = false; cancelAnimationFrame(raf); cancelAnimationFrame(fadeRaf); cancelAnimationFrame(swayRaf);
+      canvas.removeEventListener("webglcontextlost", lost);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
@@ -705,7 +808,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
       root.style.userSelect = prevSel;
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [swing]);
+  }, [swing, prodDir, decoder, motion, small, dragArea]);
 
   /* One-click switcher between the builds being compared. Its own fixed layer
      above the page (the scene itself sits behind everything at zIndex -1);
@@ -715,13 +818,21 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5 }: { zIndex?
      index.html, so only a JSON reply counts) */
   const [built, setBuilt] = useState<Record<string, boolean>>({});
   useEffect(() => {
+    if (prod) return;
     for (const sc of SCENES) {
       fetch(`${import.meta.env.BASE_URL}${sc.check ?? `preview-3dp/${sc.v ? sc.v + "/" : ""}p1920.json`}`, { cache: "no-store" })
         .then((r) => r.ok && (r.headers.get("content-type") ?? "").includes("json"))
         .catch(() => false)
         .then((ok) => setBuilt((b) => ({ ...b, [sc.v]: ok })));
     }
-  }, []);
+  }, [prod]);
+  if (prod) {
+    return (
+      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex, pointerEvents: "none" }}>
+        <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block" }} />
+      </div>
+    );
+  }
   return (
     <>
       <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex, pointerEvents: "none", background: "#0f120f" }}>

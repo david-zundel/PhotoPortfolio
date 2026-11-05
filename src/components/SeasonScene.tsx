@@ -3,9 +3,18 @@ import WinterSky from "@/components/WinterSky";
 import WinterTreeline from "@/components/WinterTreeline";
 import RunningDeer from "@/components/RunningDeer";
 import AutumnPondScene from "@/components/AutumnPondScene";
-import WinterCabinScene from "@/components/WinterCabinScene";
 import CanalRainScene from "@/components/CanalRainScene";
+import TulipsScene from "@/components/TulipsScene";
 import { useSeason, usePondPhase, SEASONS, type Season } from "@/lib/season";
+import { lazy, Suspense } from "react";
+
+/* PREVIEW ONLY: `npm run dev`, then open the site with ?3dp in the URL to see
+   the raw 3D Photo Inpainting tulip mesh. import.meta.env.DEV is false in a
+   production build, so this branch and its lazy chunk can never reach the
+   live site. Remove once the comparison is done. */
+const PREVIEW_3DP =
+  import.meta.env.DEV && typeof window !== "undefined" && new URLSearchParams(window.location.search).has("3dp");
+const MeshPreviewScene = import.meta.env.DEV ? lazy(() => import("@/components/MeshPreviewScene")) : null;
 
 /**
  * The app-level scene layer. Mount ONCE in App.tsx, replacing the treeline and
@@ -15,11 +24,19 @@ import { useSeason, usePondPhase, SEASONS, type Season } from "@/lib/season";
  * FRONT of the page content. Every other scene is the opposite — one fixed
  * backdrop at z-(-1), behind everything. That difference is deliberate, not an
  * oversight: the deer are a foreground band along the bottom, while the pond,
- * the cabin valley and the canal are each a whole environment.
+ * the canal and the tulips are each a whole environment.
  */
 export const SeasonScene = () => {
   const [season] = useSeason();
   const phase = usePondPhase();
+
+  if (PREVIEW_3DP && MeshPreviewScene) {
+    return (
+      <Suspense fallback={null}>
+        <MeshPreviewScene zIndex={-1} />
+      </Suspense>
+    );
+  }
 
   if (season === "autumn") {
     // zIndex -1 (NOT 0): the page wrapper on Index/Gallery has `isolate`, so its
@@ -31,13 +48,14 @@ export const SeasonScene = () => {
     );
   }
 
-  // Same zIndex reasoning as the pond above — see WinterCabinScene's header.
-  if (season === "cabin") {
-    return <WinterCabinScene zIndex={-1} />;
-  }
-
+  // Same zIndex reasoning as the pond above.
   if (season === "canal") {
     return <CanalRainScene zIndex={-1} rain="light" />;
+  }
+
+  // Same zIndex reasoning as the pond above.
+  if (season === "tulips") {
+    return <TulipsScene zIndex={-1} />;
   }
 
   return (
@@ -55,14 +73,13 @@ export const SeasonScene = () => {
 
 /**
  * The per-page sky. Mount inside Index and Gallery where <WinterSky /> and
- * <Weather /> are now. Only the original winter scene needs it; the pond and
- * the cabin each paint their own sky and weather, so this renders nothing for
- * them.
+ * <Weather /> are now. Only the original winter scene needs it; every other
+ * scene paints its own sky and weather, so this renders nothing for them.
  */
 export const SeasonSky = () => {
   const [season] = useSeason();
-  // The pond and the cabin both bring their own sky and weather.
-  if (season !== "winter") return null;
+  // Every scene but winter brings its own sky and weather.
+  if (season !== "winter" || PREVIEW_3DP) return null;
   return (
     <>
       <WinterSky />
@@ -71,7 +88,7 @@ export const SeasonSky = () => {
   );
 };
 
-const LABELS: Record<Season, string> = { autumn: "Autumn", winter: "Winter", cabin: "Cabin", canal: "Canal" };
+const LABELS: Record<Season, string> = { tulips: "Tulips", autumn: "Autumn", winter: "Winter", canal: "Canal" };
 
 /**
  * Nav control. Styled off .nav-pill so it sits in the existing bar unchanged.

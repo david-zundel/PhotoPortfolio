@@ -8,13 +8,17 @@
 import { useSyncExternalStore, useEffect, useState } from "react";
 import type { PondPhase } from "@/components/AutumnPondScene";
 
-export type Season = "autumn" | "winter" | "cabin" | "canal";
+export type Season = "tulips" | "autumn" | "winter" | "canal";
 
-/** Toggle order. The nav button steps through this, wrapping at the end. */
-export const SEASONS: readonly Season[] = ["autumn", "winter", "cabin", "canal"] as const;
+/** Toggle order. The nav button steps through this, wrapping at the end.
+ *  The cabin scene was removed, and the Summit scene ("garden") is hidden until it
+ *  is finished; a visitor who still has either stored falls back to DEFAULT,
+ *  because read() only accepts names listed here. */
+export const SEASONS: readonly Season[] = ["tulips", "autumn", "winter", "canal"] as const;
 
 const KEY = "dz:season";
-const DEFAULT: Season = "autumn";
+/** First visit: the tulips. A visitor who already chose a scene keeps theirs. */
+const DEFAULT: Season = "tulips";
 
 let season: Season = read();
 const listeners = new Set<() => void>();
@@ -27,7 +31,7 @@ function read(): Season {
 
 function publish() {
   // Lets plain CSS retune per season: html[data-season="autumn"] .winter-name {…}
-  // season.css keys off "autumn", cabin.css off "cabin", canal.css off "canal";
+  // season.css keys off "autumn", canal.css off "canal", tulips.css off "tulips";
   // "winter" is the base theme and has no file of its own.
   document.documentElement.setAttribute("data-season", season);
   listeners.forEach((l) => l());
