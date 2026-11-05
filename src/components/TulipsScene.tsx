@@ -12,8 +12,8 @@ import { Rotate3d, X } from "lucide-react";
  * version IS the photo, so the fade is invisible; it only shows when the view moves.
  *
  *  - mouse / pen: drag on the hero to turn the view; it eases home on release
- *  - touch screens: tilting the phone turns the view (iPhones ask permission first, from the
- *    explore button; until then the view drifts slowly). A finger on the hero scrolls the page as
+ *  - touch screens: tilting the phone or tablet turns the view (iPhones and iPads ask permission
+ *    first, from the explore button; until then the view drifts slowly). A finger on the hero scrolls the page as
  *    usual; the "Explore in 3D" button opens explore mode, where the photo fills the screen, the
  *    page can't scroll, and dragging anywhere turns the view, until Done
  *  - portrait phones get a centre crop of the photo at higher resolution (the still and the 3D
@@ -35,7 +35,7 @@ const DIR = `${BASE}tulips/`;
 /* 3:4 or narrower: every phone held upright, and tablets in portrait */
 const PORTRAIT = "(max-aspect-ratio: 3/4)";
 
-type Plan = { motion: "drag" | "tilt"; small: boolean; touch: boolean } | null;
+type Plan = { motion: "drag" | "sway"; small: boolean; touch: boolean } | null;
 type MotionPermission = { requestPermission?: () => Promise<"granted" | "denied"> };
 
 const mq = (q: string) => typeof window !== "undefined" && !!window.matchMedia?.(q).matches;
@@ -55,8 +55,10 @@ function plan3D(): Plan {
   }
   const touchOnly = mq("(pointer: coarse)") && !mq("(any-pointer: fine)");
   const devicePx = Math.max(window.screen.width, window.screen.height) * (window.devicePixelRatio || 1);
-  // any touch screen gets explore mode (an iPad with a trackpad still gets touched)
-  return { motion: touchOnly ? "tilt" : "drag", small: touchOnly || devicePx < 2600, touch: mq("(any-pointer: coarse)") };
+  /* Any touch screen gets tilt and explore mode, not just touch-ONLY ones: an iPad with a
+     keyboard/trackpad (or a paired Pencil) also reports a fine pointer, which used to leave it
+     with mouse dragging and no tilt at all. */
+  return { motion: touchOnly ? "sway" : "drag", small: touchOnly || devicePx < 2600, touch: mq("(any-pointer: coarse)") };
 }
 
 export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
@@ -98,7 +100,7 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
   const home = plan?.touch && ready && !explore ? document.getElementById("home") : null;
   const openExplore = () => {
     const DO = window.DeviceOrientationEvent as unknown as MotionPermission | undefined;
-    if (plan?.motion === "tilt" && !tilting && !asked.current && typeof DO?.requestPermission === "function") {
+    if (plan?.touch && !tilting && !asked.current && typeof DO?.requestPermission === "function") {
       asked.current = true;
       DO.requestPermission().catch(() => "denied");   // if allowed, the view starts following the phone
     }
@@ -134,6 +136,7 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
               dir={DIR}
               decoder={`${BASE}meshopt_decoder.mjs`}
               motion={plan.motion}
+              tilt={plan.touch}
               small={plan.small}
               crop={crop}
               dragArea="#home"
@@ -163,7 +166,7 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
         home,
       )}
       {explore && createPortal(
-        <ExploreLayer tilt={plan?.motion === "tilt"} onDone={() => setExplore(false)} />,
+        <ExploreLayer tilt={!!plan?.touch} onDone={() => setExplore(false)} />,
         document.body,
       )}
     </div>

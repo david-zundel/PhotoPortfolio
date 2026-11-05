@@ -42,7 +42,10 @@ export type MeshSceneProps = {
   /** PRODUCTION, portrait screens (3:4 or narrower): the photo and soft layer as a centre crop at
    *  1.5x the small set's resolution (portrait.json, photo-portrait / fur-portrait) */
   crop?: boolean;
-  /** "tilt": the first orientation reading arrived and the view now follows the phone */
+  /** turning the device turns the view (any touch screen: phones, tablets, an iPad with a
+   *  trackpad). Implied by motion "tilt". */
+  tilt?: boolean;
+  /** tilting: the first orientation reading arrived and the view now follows the device */
   onTilt?: () => void;
   /** explore mode (touch screens): a finger dragging on an element marked
    *  [data-explore-surface] turns the view. Changing it does not reload the scene. */
@@ -331,7 +334,7 @@ function mul(a: number[], b: number[]) {
 }
 
 export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDir, decoder, motion = "drag", small = false,
-  crop = false, dragArea, onReady, onFail, onTilt, discover = false }: MeshSceneProps) {
+  crop = false, dragArea, onReady, onFail, onTilt, discover = false, tilt = false }: MeshSceneProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const prod = !!prodDir;
   const [status, setStatus] = useState("Loading 3D Photo Inpainting preview…");
@@ -351,7 +354,9 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     /* Phones draw at their full 3x pixel density (capped at 2x they looked soft next to the
        photo). At that density multisampling adds memory and fill cost for edges nobody can see,
        so it is off there. */
-    const touch = motion !== "drag";
+    const tiltDev = tilt || motion === "tilt";               // follow the device's orientation
+    const swayDev = motion === "sway" || motion === "tilt";   // drift until something else moves it
+    const touch = motion !== "drag" || tiltDev;
     const dprCap = touch ? 3 : 2;
     const gl = canvas.getContext("webgl2", { alpha: false, antialias: !(touch && (window.devicePixelRatio || 1) > 2.5) });
     if (!gl) { fail("WebGL2 unavailable"); return; }
@@ -381,6 +386,8 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     const q = prod ? new URLSearchParams() : new URLSearchParams(window.location.search);
     /* &swing=4 tries a smaller drag range (degrees at full drag; default 5.5) */
     const sw = Math.min(10, Math.max(1, Number(q.get("swing")) || swing));
+    const SW_TOUCH_WIDE = 8;                  // degrees sideways at a full swing on narrow touch screens
+    let swX = sw;
     const v = q.get("3dp") ?? "";
     const sharp = !(v === "raw" || q.has("raw"));
     const scene = prod ? "ourssoft" : v !== "raw" && /^[a-z0-9_-]+$/.test(v) ? v : "";
@@ -429,12 +436,16 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       if (changed) { canvas.width = w; canvas.height = h; }
       gl.viewport(0, 0, w, h);
       aspect = cw / ch;
+      /* Touch screens narrower than the photo (every phone upright, tablets) see only the middle
+         of its width, so sideways there is a lot of picture to spare: a wider swing that way. Up
+         and down the photo's own frame is the limit, as on a computer. */
+      swX = touch && aspect < (meta ? meta.tanX / meta.tanY : 1.5) ? Math.max(sw, SW_TOUCH_WIDE) : sw;
       return changed;
     };
     const draw = () => {
       if (!meta) return;
       const tanY = aspect > meta.tanX / meta.tanY ? meta.tanX / aspect : meta.tanY;   // cover-fit
-      const zP = -2.2, R = 2.2, th = (cx * sw * Math.PI) / 180, ph = (-cy * sw * Math.PI) / 180;
+      const zP = -2.2, R = 2.2, th = (cx * swX * Math.PI) / 180, ph = (-cy * sw * Math.PI) / 180;
       const eye = [R * Math.sin(th) * Math.cos(ph), R * Math.sin(ph), zP + R * Math.cos(th) * Math.cos(ph)];
       const mvp = new Float32Array(mul(perspective(2 * Math.atan(tanY), aspect, 0.05, 50), lookAt(eye, [0, 0, zP], [0, 1, 0])));
       gl.uniformMatrix4fv(uMVP, false, mvp);
@@ -492,19 +503,27 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     const apply = () => {
       const tiltLive = Math.abs(tiltX) > 0.004 || Math.abs(tiltY) > 0.004;
       dragging = finger || tiltLive;
-      if (!finger) { dragX = 0; dragY = 0; }
+      if (!finger) { dragX = 0; dragY = 0; rawX = 0; rawY = 0; }
       tx = dragging ? clamp1(dragX + tiltX) : 0; ty = dragging ? clamp1(dragY + tiltY) : 0;
       if (dragging || moving || cx !== 0 || cy !== 0) kick();   // a plain click changes nothing
     };
     const root = document.documentElement;
-    let sx = 0, sy = 0, bx = 0, by = 0, prevSel = "", selLocked = false, reach = 0.35;
+    let sx = 0, sy = 0, bx = 0, by = 0, rawX = 0, rawY = 0, prevSel = "", selLocked = false, reachX = 1, reachY = 1;
+    /* past ~80% of the range a finger meets a soft stop instead of a wall: the view keeps
+       following a little further, then holds */
+    const soft = (v: number) => {
+      const a = Math.abs(v);
+      return a <= 0.8 ? v : Math.sign(v) * (0.8 + 0.2 * Math.tanh((a - 0.8) / 0.2));
+    };
     const down = (e: PointerEvent) => {
       if (finger) return;                                   // one finger turns the view
       const tgt = e.target as HTMLElement | null;
       if (discoverRef.current) {
         // explore mode: drags anywhere on its surface (not on its Done button)
         if (!tgt?.closest("[data-explore-surface]")) return;
-        reach = 0.45;
+        // a full swing over 60% of the screen's shorter side, the same both ways (a phone
+        // upright is narrow: 45% of its width ran out of range after ~175 px of finger)
+        reachX = reachY = 0.6 * Math.min(window.innerWidth, window.innerHeight);
         cancelAnimationFrame(swayRaf); swayRaf = 0;         // the finger takes over from the drift
       } else {
         // the hero: mouse and pen only. A finger there scrolls the page (dragging the picture
@@ -513,17 +532,18 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         if (e.button !== 0 && e.pointerType === "mouse") return;
         if (tgt?.closest("a, button, input, textarea, select, [role='button']")) return;
         if (dragArea && !tgt?.closest(dragArea)) return;
-        reach = 0.35;
+        reachX = 0.35 * window.innerWidth; reachY = 0.35 * window.innerHeight;
         prevSel = root.style.userSelect; root.style.userSelect = "none"; selLocked = true;
       }
       finger = true; fingerId = e.pointerId;
-      sx = e.clientX; sy = e.clientY; bx = dragX; by = dragY;
+      sx = e.clientX; sy = e.clientY; bx = rawX; by = rawY;
       apply();
     };
     const move = (e: PointerEvent) => {
       if (!finger || e.pointerId !== fingerId) return;
-      dragX = clamp1(bx + (e.clientX - sx) / (window.innerWidth * reach));
-      dragY = clamp1(by + (e.clientY - sy) / (window.innerHeight * reach));
+      rawX = bx + (e.clientX - sx) / reachX; rawY = by + (e.clientY - sy) / reachY;
+      if (discoverRef.current) { dragX = soft(rawX); dragY = soft(rawY); }   // fingers in explore mode
+      else { dragX = clamp1(rawX); dragY = clamp1(rawY); }                 // mouse: as it always was
       apply();
     };
     const up = (e?: PointerEvent) => {
@@ -549,7 +569,8 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         const m: Meta = await (await fetch(dir + name + ".json")).json();
         /* Portrait phones see only the middle ~40% of the photo's width, at the photo's full
            height, so the 3072 px set left them about 2048 photo rows for a ~2500-2800 px tall
-           screen. The portrait set is the middle 64% at 3072 rows instead (same memory). */
+           screen. The portrait set is the middle 72% at 3072 rows instead (room for the wider sideways
+           swing touch screens get, up to a 3:4 tablet). */
         type Portrait = { PW: number; PH: number; crop: number[]; furBox: number[] };
         let pt: Portrait | null = null;
         if (prod && crop) {
@@ -819,7 +840,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
           if (!alive) return;
           if (ms > 34) { fail(`too slow here (${ms.toFixed(0)} ms a frame)`); return; }
           ready = true;
-          if (motion === "sway" || motion === "tilt") startSway();
+          if (swayDev) startSway();
           cb.current.onReady?.();
         }
         /* ?3dp&bench: window.__mpBench(mode) times the moving-camera frame on
@@ -857,7 +878,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         if (document.hidden || window.scrollY > window.innerHeight * 1.5 || now - lastS < 33) return;
         lastS = now;
         const t = (now - t0s) / 1000, ramp = Math.min(1, t / 4);
-        cx = ramp * 0.42 * Math.sin((t * 2 * Math.PI) / 17);
+        cx = ramp * 0.42 * (sw / swX) * Math.sin((t * 2 * Math.PI) / 17);   // same drift at any swing
         cy = ramp * 0.18 * Math.sin((t * 2 * Math.PI) / 23 + 1.1);
         settle = Math.max(0, 1 - t / 1.5);
         if (!moving) { moving = true; setSize(moveDpr); }
@@ -928,7 +949,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     // explore mode ended: let go of any drag, and bring the drift back if nothing else moves it
     api.current.endDrag = () => {
       if (finger) { finger = false; apply(); }
-      if (motion === "tilt" && ready && !tiltOn && !swayRaf) startSway();
+      if (swayDev && ready && !tiltOn && !swayRaf) startSway();
     };
 
     setSize(fullDpr);
@@ -937,7 +958,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     window.addEventListener("pointermove", move, { passive: true });
     window.addEventListener("pointerup", up, { passive: true });
     window.addEventListener("pointercancel", up, { passive: true });
-    if (motion === "tilt") window.addEventListener("deviceorientation", onOrient);
+    if (tiltDev) window.addEventListener("deviceorientation", onOrient);
     return () => {
       alive = false; cancelAnimationFrame(raf); cancelAnimationFrame(fadeRaf); cancelAnimationFrame(swayRaf);
       canvas.removeEventListener("webglcontextlost", lost);
@@ -951,7 +972,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       if (selLocked) root.style.userSelect = prevSel;
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [swing, prodDir, decoder, motion, small, crop, dragArea]);
+  }, [swing, prodDir, decoder, motion, small, crop, dragArea, tilt]);
 
   /* One-click switcher between the builds being compared. Its own fixed layer
      above the page (the scene itself sits behind everything at zIndex -1);
