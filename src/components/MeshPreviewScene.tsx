@@ -34,10 +34,16 @@ export type MeshSceneProps = {
   dir?: string;
   /** URL of meshopt_decoder.mjs (default: public/preview-3dp/) */
   decoder?: string;
-  /** "drag": mouse/pen drags the view. "sway": a slow automatic drift (touch screens) */
-  motion?: "drag" | "sway";
+  /** "drag": mouse/pen drags the view. "sway": a slow automatic drift. "tilt": the phone's
+   *  gyroscope turns the view (touch screens), drifting like "sway" until motion data arrives */
+  motion?: "drag" | "sway" | "tilt";
   /** smaller textures (photo-3072 / fur-3072) and depth maps: phones and small screens */
   small?: boolean;
+  /** PRODUCTION, portrait screens (3:4 or narrower): the photo and soft layer as a centre crop at
+   *  1.5x the small set's resolution (portrait.json, photo-portrait / fur-portrait) */
+  crop?: boolean;
+  /** "tilt": the first gyroscope reading arrived and the view now follows the phone */
+  onTilt?: () => void;
   /** CSS selector: drags start only inside it (default: anywhere that is not a control) */
   dragArea?: string;
   /** every layer loaded, the first frame drawn and fast enough on this device */
@@ -83,13 +89,17 @@ precision highp float; in vec3 vC; in float vOwn; in vec3 vPos;
 uniform sampler2D uTex; uniform highp sampler2D uRest; uniform highp sampler2D uZmin; uniform highp sampler2D uZmax;
 uniform sampler2D uPush; uniform sampler2D uExt; uniform vec2 uT0; uniform vec2 uNF; uniform ivec2 uRestSize; uniform int uMode;
 uniform float uHaveRest; uniform float uSharp; uniform float uDebug; uniform float uSettle; uniform float uNoExt; uniform float uNoBand; uniform float uMirror; uniform sampler2D uBehind; uniform float uHaveBehind; out vec4 o;
+/* the part of the photo the colour texture holds (offset, size in photo uv): all of it, or on
+   portrait phones a centre crop at higher resolution */
+uniform vec4 uCrop;
+vec4 photoTex(vec2 at, vec2 gx, vec2 gy) { return textureGrad(uTex, (at - uCrop.xy) / uCrop.zw, gx / uCrop.zw, gy / uCrop.zw); }
 float lin(float d) { return 2.0 * uNF.x * uNF.y / (uNF.y + uNF.x - (2.0 * d - 1.0) * (uNF.y - uNF.x)); }
 float zAt(highp sampler2D s, ivec2 t) { return lin(texelFetch(s, clamp(t, ivec2(0), uRestSize - 1), 0).r); }
 float seen(float z, float zr) { return 1.0 - smoothstep(zr * 1.004, zr * 1.012, z); }
 vec3 photoAt(vec2 at, vec2 uv) {
   // gradients from the unshifted coordinate, so an offset jump never tricks
   // the GPU into a blurry mip; 0.76 = the slight sharpening bias (2^-0.4)
-  return textureGrad(uTex, clamp(at, 0.0, 1.0), dFdx(uv) * 0.76, dFdy(uv) * 0.76).rgb;
+  return photoTex(clamp(at, 0.0, 1.0), dFdx(uv) * 0.76, dFdy(uv) * 0.76).rgb;
 }
 void main() {
   float z = -vPos.z;
@@ -146,7 +156,7 @@ void main() {
     vec2 m = 1.0 - abs(1.0 - abs(uv));
     vec2 out2 = max(-uv, uv - 1.0) * vec2(1920.0, 1280.0);
     float k = 0.76 * min(exp2(max(max(out2.x, out2.y), 0.0) / 20.0), 48.0);
-    c = uMirror > 0.5 ? textureGrad(uTex, m, dFdx(uv) * k, dFdy(uv) * k).rgb : vC;
+    c = uMirror > 0.5 ? photoTex(m, dFdx(uv) * k, dFdy(uv) * k).rgb : vC;
   } else {
     c = mix(photo, vC, vOwn);                         // fallback: the old per-vertex rule
   }
@@ -318,23 +328,28 @@ function mul(a: number[], b: number[]) {
 }
 
 export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDir, decoder, motion = "drag", small = false,
-  dragArea, onReady, onFail }: MeshSceneProps) {
+  crop = false, dragArea, onReady, onFail, onTilt }: MeshSceneProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const prod = !!prodDir;
   const [status, setStatus] = useState("Loading 3D Photo Inpainting preview…");
   // the callbacks may be new functions on every render; the effect must not restart for that
-  const cb = useRef({ onReady, onFail });
-  cb.current = { onReady, onFail };
+  const cb = useRef({ onReady, onFail, onTilt });
+  cb.current = { onReady, onFail, onTilt };
 
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
-    const fail = (why: string) => { setStatus(why); cb.current.onFail?.(why); };
-    const gl = canvas.getContext("webgl2", { alpha: false, antialias: true });
+    const fail = (why: string) => { setStatus(why); if (prod) console.warn(`3D backdrop off: ${why}`); cb.current.onFail?.(why); };
+    /* Phones draw at their full 3x pixel density (capped at 2x they looked soft next to the
+       photo). At that density multisampling adds memory and fill cost for edges nobody can see,
+       so it is off there. */
+    const touch = motion !== "drag";
+    const dprCap = touch ? 3 : 2;
+    const gl = canvas.getContext("webgl2", { alpha: false, antialias: !(touch && (window.devicePixelRatio || 1) > 2.5) });
     if (!gl) { fail("WebGL2 unavailable"); return; }
     const lost = (e: Event) => { e.preventDefault(); fail("WebGL context lost"); };
     canvas.addEventListener("webglcontextlost", lost);
-    let alive = true, raf = 0, running = false, last = 0, moving = false;
+    let alive = true, raf = 0, running = false, last = 0, moving = false, ready = false;
     /* 0 while the mouse is down and the scene is gliding home, 1 once it has
        settled. The colouring rule switches on THIS, not on camera position,
        so swinging back and forth through the centre never changes anything;
@@ -362,7 +377,8 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     const sharp = !(v === "raw" || q.has("raw"));
     const scene = prod ? "ourssoft" : v !== "raw" && /^[a-z0-9_-]+$/.test(v) ? v : "";
     // textures: the smaller set when asked for, or when this GPU can't hold a 6144 px texture
-    const useSmall = prod && (small || (gl.getParameter(gl.MAX_TEXTURE_SIZE) as number) < 6144);
+    const useSmall = prod && (small || crop || (gl.getParameter(gl.MAX_TEXTURE_SIZE) as number) < 6144);
+    gl.uniform4f(U("uCrop"), 0, 0, 1, 1);
     const debugOwn = q.has("own");
     const holesDbg = q.has("holes");
     gl.uniform1f(U("uSharp"), sharp ? 1 : 0);
@@ -388,17 +404,24 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
        Retina screen), 1x while moving, where the difference is invisible and
        the fill cost is a quarter. The switch happens in the same task as a
        draw, so there is never a blank frame. */
-    const fullDpr = Math.min(window.devicePixelRatio || 1, 2);
+    let fullDpr = Math.min(window.devicePixelRatio || 1, dprCap);
     /* Resolution while dragging. It used to drop to 1x, which made the whole picture
        go soft the moment a drag began (on a Retina screen, half the detail of the
        still photo). Full resolution now costs ~11 ms a frame on an M3 Pro (1x: ~8),
        so it stays. &movedpr=1 restores the old behaviour for comparison. */
-    const moveDpr = Math.min(fullDpr, Math.max(1, Number(q.get("movedpr")) || fullDpr));
+    let moveDpr = Math.min(fullDpr, Math.max(1, Number(q.get("movedpr")) || fullDpr));
+    /* Sized from the canvas's own box, not the window. On phones the window's height changes
+       every time the address bar slides in or out while scrolling; the backdrop's box is the
+       large viewport height (100lvh, see .backdrop-fixed) and does not, so the picture no longer
+       stretches and snaps back during a scroll. Returns whether anything changed. */
     const setSize = (dpr: number) => {
-      const w = Math.round(window.innerWidth * dpr), h = Math.round(window.innerHeight * dpr);
-      if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+      const cw = canvas.clientWidth || window.innerWidth, ch = canvas.clientHeight || window.innerHeight;
+      const w = Math.round(cw * dpr), h = Math.round(ch * dpr);
+      const changed = canvas.width !== w || canvas.height !== h;
+      if (changed) { canvas.width = w; canvas.height = h; }
       gl.viewport(0, 0, w, h);
-      aspect = window.innerWidth / window.innerHeight;
+      aspect = cw / ch;
+      return changed;
     };
     const draw = () => {
       if (!meta) return;
@@ -419,7 +442,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         gl.bindVertexArray(null); gl.useProgram(prog);
       }
     };
-    const resize = () => { setSize(moving ? moveDpr : fullDpr); draw(); };
+    const resize = () => { if (setSize(moving ? moveDpr : fullDpr)) draw(); };
 
     /* Easing is by elapsed TIME, not per frame. The card scene's per-frame 8%
        felt fine at 60fps, but on a heavy frame it stretches out and the scene
@@ -490,8 +513,21 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         if (!prod) for (const n of ["p1920", "p960"]) { if (isJson(await fetch(dir + n + ".json"))) { name = n; break; } }
         if (!name) throw new Error(`no packed mesh in public/preview-3dp/${scene ? scene + "/" : ""}`);
         const m: Meta = await (await fetch(dir + name + ".json")).json();
+        /* Portrait phones see only the middle ~40% of the photo's width, at the photo's full
+           height, so the 3072 px set left them about 2048 photo rows for a ~2500-2800 px tall
+           screen. The portrait set is the middle 64% at 3072 rows instead (same memory). */
+        type Portrait = { PW: number; PH: number; crop: number[]; furBox: number[] };
+        let pt: Portrait | null = null;
+        if (prod && crop) {
+          const r = await fetch(dir + "portrait.json").catch(() => null);
+          if (r && isJson(r)) pt = await r.json();
+        }
+        if (pt) {
+          const [cx0, cy0, cx1, cy1] = pt.crop;
+          gl.uniform4f(U("uCrop"), cx0 / pt.PW, 1 - cy1 / pt.PH, (cx1 - cx0) / pt.PW, (cy1 - cy0) / pt.PH);
+        }
         const photoP = new Promise<HTMLImageElement>((res, rej) => {
-          const f = useSmall ? "photo-3072.webp" : "photo.webp";
+          const f = pt ? "photo-portrait.webp" : useSmall ? "photo-3072.webp" : "photo.webp";
           const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(`${f} missing`)); im.src = dir + f;
         });
         /* A plain template literal on purpose: the dev server leaves `import(\`...\`)` alone, while
@@ -673,7 +709,8 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         if (isJson(fr)) {
           const fm: { box: number[]; PW: number; PH: number; nv: number; ni: number;
             format?: string; step?: number; z0?: number; z1?: number } = await fr.json();
-          const furTex = useSmall ? "fur-3072.webp" : "fur.webp";
+          const furTex = pt ? "fur-portrait.webp" : useSmall ? "fur-3072.webp" : "fur.webp";
+          if (pt) fm.box = pt.furBox;          // the portrait texture covers only the centre crop
           const fimgP = new Promise<HTMLImageElement>((res, rej) => {
             const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error(`${furTex} missing`)); im.src = dir + furTex;
           });
@@ -729,20 +766,26 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
         const mb = ((mv.byteLength + mi.byteLength) / 1e6).toFixed(1);
         setStatus(`${scene.startsWith("ours") ? "Our mesh (our depth + your photo; fill colours from 3D Photo Inpainting; no Apple model)" : "3D Photo Inpainting preview"}${scene ? ` (${scene})` : ""} · ${m.W}px geometry · ${(m.nt / 1e6).toFixed(2)}M triangles · ${mb} MB · `
           + `loaded in ${((performance.now() - t0) / 1000).toFixed(1)} s · ${sharp ? (haveRest ? "your photo wherever visible" : "full-res photo (per-vertex fallback)") : "raw colours"}${furNote} · drag to rotate`);
-        resize();
+        setSize(moving ? moveDpr : fullDpr); draw();
         if (prod) {
           /* Is this device fast enough? Time a few frames at a drag pose, waiting for the GPU after
              each (a 1-pixel read). Slower than ~30 fps: stay with the still photo instead. */
           const px = new Uint8Array(4), keep = [cx, cy, moving, settle] as const;
-          cx = 0.6; cy = -0.3; moving = true; settle = 0; setSize(moveDpr);
-          for (let i = 0; i < 2; i++) { draw(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }   // warm-up
-          const t1 = performance.now();
-          for (let i = 0; i < 4; i++) { draw(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }
-          const ms = (performance.now() - t1) / 4;
+          const probe = () => {
+            cx = 0.6; cy = -0.3; moving = true; settle = 0; setSize(moveDpr);
+            for (let i = 0; i < 2; i++) { draw(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }   // warm-up
+            const t1 = performance.now();
+            for (let i = 0; i < 4; i++) { draw(); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); }
+            return (performance.now() - t1) / 4;
+          };
+          let ms = probe();
+          // a phone that can't hold ~50 fps at 3x gets 2x (still sharper than the old cap allowed)
+          if (ms > 20 && fullDpr > 2) { fullDpr = 2; moveDpr = Math.min(moveDpr, 2); ms = probe(); }
           [cx, cy, moving, settle] = keep; setSize(fullDpr); draw();
           if (!alive) return;
           if (ms > 34) { fail(`too slow here (${ms.toFixed(0)} ms a frame)`); return; }
-          if (motion === "sway") startSway();
+          ready = true;
+          if (motion === "sway" || motion === "tilt") startSway();
           cb.current.onReady?.();
         }
         /* ?3dp&bench: window.__mpBench(mode) times the moving-camera frame on
@@ -789,6 +832,50 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       swayRaf = requestAnimationFrame(step);
     };
 
+    /* "tilt": the phone's gyroscope turns the view, as if the flowers were a little diorama held
+       in your hands: turn the phone and you see round the flowers from that side. Rotation
+       rates (not absolute angles) so it works however the phone is held, upright or flat;
+       integrated with a slow leak, so a tilt you hold eases back to the photo over a few
+       seconds and the view settles on the exact photograph when the phone is still.
+       On iPhones the events only arrive after the visitor allows motion access (TulipsScene's
+       "Tilt to explore" button); until then, or on phones without a gyroscope, the drift runs. */
+    const TILT_RANGE = 12;        // degrees of turn for a full swing
+    const TILT_LEAK = 3;          // seconds for a held tilt to ease ~2/3 of the way back
+    let tiltOn = false, yaw = 0, pitch = 0, lastM = 0;
+    const screenAngle = () => {
+      const a = window.screen?.orientation?.angle ?? Number((window as unknown as { orientation?: number }).orientation ?? 0);
+      return (((a % 360) + 360) % 360) * Math.PI / 180;
+    };
+    const onMotion = (e: DeviceMotionEvent) => {
+      const r = e.rotationRate;
+      if (!ready || !alive || !r || r.beta == null || r.gamma == null) return;
+      const now = performance.now();
+      if (!tiltOn) {               // first real reading: the gyroscope takes over from the drift
+        tiltOn = true; lastM = now;
+        cancelAnimationFrame(swayRaf); swayRaf = 0;
+        tx = 0; ty = 0; dragging = false; kick();   // ease from wherever the drift was
+        cb.current.onTilt?.();
+        return;
+      }
+      const dt = Math.min(0.1, (now - lastM) / 1000); lastM = now;
+      if (document.hidden || window.scrollY > window.innerHeight * 1.5) return;
+      // device axes -> screen axes (landscape turns them a quarter)
+      const a = screenAngle();
+      const aboutRight = r.beta * Math.cos(a) - r.gamma * Math.sin(a);   // deg/s, top edge toward you > 0
+      const aboutUp = r.beta * Math.sin(a) + r.gamma * Math.cos(a);      // deg/s, right edge away > 0
+      const leak = Math.exp(-dt / TILT_LEAK), lim = TILT_RANGE * 1.25;
+      yaw = Math.max(-lim, Math.min(lim, (yaw + aboutUp * dt) * leak));
+      pitch = Math.max(-lim, Math.min(lim, (pitch + aboutRight * dt) * leak));
+      // right edge away: you see the flowers from their left; top toward you: from above
+      const nx = Math.max(-1, Math.min(1, -yaw / TILT_RANGE)), ny = Math.max(-1, Math.min(1, -pitch / TILT_RANGE));
+      if (Math.abs(nx) < 0.004 && Math.abs(ny) < 0.004) {
+        // still phone: go home, then the usual crossfade back to the exact photograph
+        if (tx !== 0 || ty !== 0 || dragging) { tx = 0; ty = 0; dragging = false; kick(); }
+        return;
+      }
+      tx = nx; ty = ny; dragging = true; kick();
+    };
+
     setSize(fullDpr);
     window.addEventListener("resize", resize);
     if (motion === "drag") {
@@ -797,9 +884,11 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       window.addEventListener("pointerup", up, { passive: true });
       window.addEventListener("pointercancel", up, { passive: true });
     }
+    if (motion === "tilt") window.addEventListener("devicemotion", onMotion);
     return () => {
       alive = false; cancelAnimationFrame(raf); cancelAnimationFrame(fadeRaf); cancelAnimationFrame(swayRaf);
       canvas.removeEventListener("webglcontextlost", lost);
+      window.removeEventListener("devicemotion", onMotion);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointerdown", down);
       window.removeEventListener("pointermove", move);
@@ -808,7 +897,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       root.style.userSelect = prevSel;
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [swing, prodDir, decoder, motion, small, dragArea]);
+  }, [swing, prodDir, decoder, motion, small, crop, dragArea]);
 
   /* One-click switcher between the builds being compared. Its own fixed layer
      above the page (the scene itself sits behind everything at zIndex -1);
@@ -828,7 +917,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
   }, [prod]);
   if (prod) {
     return (
-      <div aria-hidden="true" style={{ position: "fixed", inset: 0, zIndex, pointerEvents: "none" }}>
+      <div aria-hidden="true" className="backdrop-fixed" style={{ zIndex, pointerEvents: "none" }}>
         <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block" }} />
       </div>
     );

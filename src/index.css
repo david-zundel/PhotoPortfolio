@@ -301,3 +301,16 @@
   .carousel-slide { transition: none !important; }
   .slide-caption { animation: none !important; }
 }
+
+/* Fixed full-screen backdrops (the tulips' photo and 3D canvas). Sized to the LARGE viewport
+   height rather than inset: 0, which on phones follows the address bar as it slides in and out
+   while scrolling: the canvas was stretched to the new height for a frame or more, then redrawn
+   (the picture squashed and sprang back). 100vh first for browsers without lvh units. */
+.backdrop-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;
+}
