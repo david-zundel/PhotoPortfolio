@@ -903,10 +903,30 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
     const TILT_RANGE = 12;        // degrees of turn for a full swing
     const TILT_LEAK = 3;          // seconds for a held tilt to ease ~2/3 of the way back
     const D2R = Math.PI / 180;
-    let tiltOn = false, yaw = 0, pitch = 0, lastM = 0, prevR: number[] | null = null;
-    const screenAngle = () => {
+    let tiltOn = false, yaw = 0, pitch = 0, lastM = 0, prevR: number[] | null = null, quarter = -1;
+    /* How far the picture is turned from the device's own upright (0, 90, 180 or 270 degrees),
+       to turn the device's axes into the screen's. Decided from gravity, which side of the
+       device is down, limited by the window's shape (a landscape window means 90 or 270).
+       The browser's own answer (screen.orientation / window.orientation) can't be trusted for
+       this: on an iPad held sideways it came out a quarter turn off, so tilting it forward
+       turned the view sideways. It's only the fallback now, for a device lying nearly flat. */
+    const reported = () => {
       const a = window.screen?.orientation?.angle ?? Number((window as unknown as { orientation?: number }).orientation ?? 0);
-      return (((a % 360) + 360) % 360) * D2R;
+      return Math.round((((a % 360) + 360) % 360) / 90) % 4;
+    };
+    const screenQuarter = (R: number[]) => {
+      const gx = -R[6], gy = -R[7];                 // gravity in the device's axes (x right, y up)
+      const landscape = window.innerWidth > window.innerHeight;
+      if (landscape) {
+        if (gx < -0.3) quarter = 1;                   // the device's left side is down: turned 90
+        else if (gx > 0.3) quarter = 3;               // its right side is down: turned 270
+        else if (quarter !== 1 && quarter !== 3) quarter = reported() % 2 === 1 ? reported() : 1;
+      } else {
+        if (gy < -0.3) quarter = 0;                   // upright
+        else if (gy > 0.3) quarter = 2;               // upside down (tablets allow it)
+        else if (quarter !== 0 && quarter !== 2) quarter = reported() % 2 === 0 ? reported() : 0;
+      }
+      return quarter * Math.PI / 2;
     };
     // the phone's attitude as a rotation matrix, R = Rz(alpha) Rx(beta) Ry(gamma) (row-major)
     const attitude = (al: number, be: number, ga: number) => {
@@ -935,7 +955,7 @@ export default function MeshPreviewScene({ zIndex = -1, swing = 5.5, dir: prodDi
       const wx = (d(2, 1) - d(1, 2)) / 2 / D2R, wy = (d(0, 2) - d(2, 0)) / 2 / D2R;   // degrees
       if (Math.abs(wx) > 20 || Math.abs(wy) > 20) return;   // a glitch or a reset, not a turn
       // phone axes -> screen axes (landscape turns them a quarter)
-      const a = screenAngle();
+      const a = screenQuarter(R);
       const aboutRight = wx * Math.cos(a) - wy * Math.sin(a);   // top edge toward you > 0
       const aboutUp = wx * Math.sin(a) + wy * Math.cos(a);      // right edge away from you > 0
       const leak = Math.exp(-dt / TILT_LEAK), lim = TILT_RANGE * 1.25;

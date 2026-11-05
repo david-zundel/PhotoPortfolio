@@ -36,6 +36,23 @@ const DIR = `${BASE}tulips/`;
 const PORTRAIT = "(max-aspect-ratio: 3/4)";
 
 type Plan = { motion: "drag" | "sway"; small: boolean; touch: boolean } | null;
+
+/* The still photo is chosen here, not by srcset / <picture>. Safari (Mac, iPhone, iPad) starts
+   loading an <img>'s plain src the moment it's set, before srcset and the <picture>'s sources are
+   in place, and painted that smaller file for a moment before the right one arrived: a blurry
+   flash on every load. One URL means one request, and the image is only shown once decoded. */
+const STILLS: Record<"portrait" | "full", [number, string][]> = {
+  portrait: [[1200, "still-p1200.webp"], [2160, "still-p2160.webp"]],   // 3:4 centre crops
+  full: [[1600, "still-1600.webp"], [2880, "still-2880.webp"]],
+};
+function pickStill(): { cls: "portrait" | "full"; i: number } {
+  const w = window.innerWidth, h = window.innerHeight, dpr = window.devicePixelRatio || 1;
+  const cls = w / h <= 0.75 ? "portrait" : "full";                    // same test as PORTRAIT
+  // the width the photo is drawn at with object-fit: cover, in device pixels
+  const need = (cls === "portrait" ? 0.75 * h : w / h < 1.5 ? 1.5 * h : w) * dpr;
+  const i = STILLS[cls].findIndex(([px]) => px >= need * 0.9);
+  return { cls, i: i < 0 ? STILLS[cls].length - 1 : i };
+}
 type MotionPermission = { requestPermission?: () => Promise<"granted" | "denied"> };
 
 const mq = (q: string) => typeof window !== "undefined" && !!window.matchMedia?.(q).matches;
@@ -70,6 +87,9 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
   const [tilting, setTilting] = useState(false);
   const [explore, setExplore] = useState(false);
   const asked = useRef(false);
+  const [still, setStill] = useState(pickStill);
+  const [stillShown, setStillShown] = useState(false);
+  const stillImg = useRef<HTMLImageElement>(null);
 
   // start the 3D download only after the page (and the still photo) have loaded
   useEffect(() => {
@@ -90,6 +110,24 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
     return () => q.removeEventListener?.("change", on);
   }, []);
 
+  // a resize changes the still only for a different shape of screen or a sharper need
+  useEffect(() => {
+    const on = () => setStill((cur) => {
+      const nx = pickStill();
+      return nx.cls !== cur.cls || nx.i > cur.i ? nx : cur;
+    });
+    window.addEventListener("resize", on);
+    return () => window.removeEventListener("resize", on);
+  }, []);
+  const stillSrc = `${DIR}${STILLS[still.cls][still.i][1]}`;
+  const showStill = () => {
+    const im = stillImg.current;
+    if (!im) return;
+    (im.decode ? im.decode() : Promise.resolve()).catch(() => undefined).then(() => setStillShown(true));
+  };
+  // already in the cache and loaded before React was listening
+  useEffect(() => { if (stillImg.current?.complete && stillImg.current.naturalWidth) showStill(); }, []);
+
   const crop = !!plan?.small && portrait;
   const key = crop ? "portrait" : "full";
   const ready = readyKey === key;
@@ -109,25 +147,15 @@ export default function TulipsScene({ zIndex = -1 }: { zIndex?: number }) {
 
   return (
     <div aria-hidden="true" className="backdrop-fixed" style={{ zIndex, pointerEvents: "none", background: "#0f120f" }}>
-      <picture>
-        {/* portrait screens: the centre of the photo at its full height (3:4 crop), so a phone's
-            ~2500-2800 px tall screen isn't showing a 1920 px tall image stretched */}
-        <source
-          media={PORTRAIT}
-          srcSet={`${DIR}still-p1200.webp 1200w, ${DIR}still-p2160.webp 2160w`}
-          sizes="75vh"
-        />
-        <img
-          src={`${DIR}still-1600.webp`}
-          srcSet={`${DIR}still-1600.webp 1600w, ${DIR}still-2880.webp 2880w`}
-          /* object-fit: cover on a screen narrower than 3:2 shows the photo at 1.5x the screen's
-             height in width, not 100vw */
-          sizes="(max-aspect-ratio: 3/2) 150vh, 100vw"
-          alt=""
-          decoding="async"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      </picture>
+      <img
+        ref={stillImg}
+        src={stillSrc}
+        onLoad={showStill}
+        alt=""
+        decoding="async"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+          opacity: stillShown ? 1 : 0, transition: "opacity 0.25s ease" }}
+      />
       {plan && mount && !failed && (
         <div key={key} style={{ position: "absolute", inset: 0, opacity: ready ? 1 : 0, transition: "opacity 0.6s ease" }}>
           <Suspense fallback={null}>
